@@ -63,7 +63,7 @@ export const RoleData: RoleConfig = {
     'out-carry': { num: 0, ability: [0, 5, 5, 0, 0, 0, 0, 0], level: 13, adaption: true, work: OutTransport},
     'out-defend': { num: 0, ability: [0, 0, 5, 5, 0, 5, 0, 0], level: 8, adaption: true, work: OutDefender},
     'out-invader': { num: 0, ability: [0, 0, 5, 5, 0, 6, 0, 0], level: 10, adaption: true, work: OutInvader},
-    'out-attack': { num: 0, ability: [0, 0, 25, 19, 0, 6, 0, 0], level: 9, adaption: true, work: OutAttack},
+    'out-attack': { num: 0, ability: [0, 0, 25, 19, 0, 6, 0, 0], level: 9, work: OutAttack},
 
     /* 采集沉积物 */
     'deposit-harvest': { num: 0, ability: [20, 10, 20, 0, 0, 0, 0, 0], level: 11, adaption: true, work: depositHarvest },

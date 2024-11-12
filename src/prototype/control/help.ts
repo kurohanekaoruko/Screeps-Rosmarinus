@@ -1,4 +1,4 @@
 
 export default {
-    help: ''
+    help: '还没写help'
 }

@@ -1,12 +1,11 @@
 {
   "name": "rosmarinus-bot",
-  "version": "2.5.0",
-  "description": "",
+  "version": "2.6.0",
+  "description": "一个用于screeps的半自动bot ",
   "type": "module",
   "scripts": {
     "build": "rollup -cw",
     "push": "rollup -cw --environment DEST:main",
-    "push.sim": "rollup -cw --environment DEST:sim",
     "local": "rollup -cw --environment DEST:local",
     "private": "rollup -cw --environment DEST:private"
   },
