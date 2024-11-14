@@ -3,7 +3,7 @@ const CarryEnergySource = {
     ruin: (creep) => findClosestUnclaimedResource(creep, FIND_RUINS),
     container: (creep) => {
         const containers = creep.room.container
-            .filter(c => c && c.store.getUsedCapacity() > Math.min(500, creep.store.getFreeCapacity()));
+            .filter(c => c && c.store.getUsedCapacity() > Math.min(1000, creep.store.getFreeCapacity()));
         return creep.pos.findClosestByRange(containers);
     },
     Link: (creep) => {

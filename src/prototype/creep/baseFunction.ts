@@ -198,20 +198,23 @@ export default class BaseFunction extends Creep {
     }
     unboost() {
         if(!this.body.some(part => part.boost)) return false;
-        
-        const labContainer = this.room.container.find((container) => {
-            const lab = this.room.lab.find((lab) => { return container.pos.isNear(lab.pos) });
-            return lab;
-        });
-        if (!labContainer) return false;
-        if (this.pos.isEqual(labContainer.pos)) {
-            const lab = this.room.lab.find((lab) => {
-                return this.pos.isNear(lab.pos) && lab.cooldown == 0;
-            })
+
+        let lab = null;
+        let container = this.room.container.find((c) => {
+            return !!this.room.lab.find((l) => {
+                if(!c.pos.isNear(l.pos) || l.cooldown > 0)
+                    return false;
+                lab = l;
+                return true;
+            });
+        })
+
+        if (!container || !lab) return false;
+        if (this.pos.isEqual(container.pos)) {
             return lab.unboostCreep(this) === OK;
         } else {
-            this.moveTo(labContainer, { visualizePathStyle: { stroke: '#ffffff' } });
-            return true;
+            this.moveTo(container, { visualizePathStyle: { stroke: '#ffffff' } });
+            return false;
         }
     }
 }

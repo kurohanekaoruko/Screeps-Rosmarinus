@@ -19,8 +19,8 @@
     "allowJs": true, // 允许 JavaScript 文件
     "declaration": false, // 生成声明文件
     "sourceMap": true, // 生成源映射文件
-    "noImplicitAny": false, // 禁止隐式的 any 类型
-    "experimentalDecorators": true // 启用实验性的装饰器
+    "noImplicitAny": false, // 是否禁止隐式的 any 类型
+    "experimentalDecorators": true // 是否启用实验性的装饰器
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]

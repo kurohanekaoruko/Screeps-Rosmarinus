@@ -40,7 +40,7 @@ export default class CreepSpawn extends Room {
             const num = RoleData[role]['adaption'] ? RoleLevelData[role][lv]['num'] : RoleData[role]['num'];
             const result = this.RoleSpawnCheck(role, currentNum, num)
             if (result) {
-                const level = RoleLevelData[role][lv]['level'];
+                const level = RoleData[role]['level'];
                 if(!spawnQueue[level]) {
                     spawnQueue[level] = [];
                 }
@@ -58,10 +58,14 @@ export default class CreepSpawn extends Room {
     // 检查主要角色是否需要孵化
     RoleSpawnCheck(role: string, currentNum: number, num: number) {
         const roomLevel = this.level;
-        const roomEnergy = this.AllEnergy();
 
         const spawnConditions = {
-            'harvester': () => currentNum < this.source.length,
+            'harvester': () => {
+                if(this.level <= 3) {
+                    return currentNum < this.source.length * 2;
+                }
+                return currentNum < this.source.length
+            },
             'upgrader': () => {
                 if(global.CreepNum[this.name]['speedup-upgrad'] > 0) return false;
                 return currentNum < num;
@@ -83,8 +87,8 @@ export default class CreepSpawn extends Room {
             },
             'repair': () => {
                 let maxNum = 1;
-                // if(this.getMissionNumInPool('walls') > 50) maxNum = 2;
-                if (roomLevel < 3 || roomEnergy < 10000 || currentNum >= maxNum) return false;
+                if (this.getMissionNumInPool('walls') > 50) maxNum = 2;
+                if (roomLevel < 3 || currentNum >= maxNum) return false;
                 return this.checkMissionInPool('repair') || this.checkMissionInPool('walls') || this.checkMissionInPool('build') ;
             },
             'miner': () => currentNum < 1 && roomLevel >= 6 && this.extractor && this.find(FIND_MINERALS)[0]?.mineralAmount > 0,

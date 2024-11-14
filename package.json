@@ -6,6 +6,7 @@
   "scripts": {
     "build": "rollup -cw",
     "push": "rollup -cw --environment DEST:main",
+    "sim": "rollup -cw --environment DEST:sim",
     "local": "rollup -cw --environment DEST:local",
     "private": "rollup -cw --environment DEST:private"
   },

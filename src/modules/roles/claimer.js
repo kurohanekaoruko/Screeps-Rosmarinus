@@ -6,20 +6,6 @@ const claimer = {
             return;
         }
 
-        // 如果有治疗组件并且受伤，那么治疗
-        if (creep.getActiveBodyparts(HEAL) > 0 && creep.hits < creep.hitsMax) {
-            creep.heal(creep);
-        }
-
-        const moveflag = Game.flags[creep.name + '-move'];
-        if(moveflag) {
-            if(creep.memory.target = moveflag.pos.roomName) {
-                creep.memory.target = moveflag.pos.roomName;
-            }
-            creep.moveTo(moveflag.pos, { visualizePathStyle: { stroke: '#00ff00' }});
-            return true;
-        }
-
         // 如果不在目标房间，向目标房间移动
         if (creep.room.name !== creep.memory.target) {
             creep.moveTo(new RoomPosition(25, 25, creep.memory.target), { 

@@ -1,5 +1,5 @@
 const UnitMiner = {
-    source: function (creep) {
+    source: function (creep: Creep) {
         const mineral = creep.room.mineral;
         if (!mineral) {
             return false;
@@ -24,10 +24,17 @@ const UnitMiner = {
 
         return creep.store.getFreeCapacity() === 0;
     },
-    target: function (creep) {
+    target: function (creep: Creep) {
         // 如果没有缓存存储目标，则寻找存储目标
         if (!creep.memory.cache.targetId) {
             const mineralContainer = creep.room.container.find(c => c.pos.inRangeTo(creep.room.mineral, 2)) || null;
+            if(!mineralContainer &&
+                creep.pos.inRange(creep.room.mineral.pos, 2) &&
+                creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 2)
+                .filter(cs => cs.structureType === STRUCTURE_CONTAINER).length === 0) {
+                creep.room.createConstructionSite(creep.pos, STRUCTURE_CONTAINER);
+                return false;
+            }
             const target = (mineralContainer && mineralContainer.store.getFreeCapacity() > 0) ?
                             mineralContainer : 
                             creep.pos.findClosestByRange([creep.room.storage, creep.room.terminal])
@@ -40,13 +47,13 @@ const UnitMiner = {
             }
         }
 
-        const target = Game.getObjectById(creep.memory.cache.targetId);
+        const target = Game.getObjectById(creep.memory.cache.targetId) as StructureContainer | StructureStorage | StructureTerminal;
         if (!target || target.store.getFreeCapacity() === 0) {
             delete creep.memory.cache.targetId;
             return false;
         }
 
-        const resourceType = Object.keys(creep.store)[0];
+        const resourceType = Object.keys(creep.store)[0] as ResourceConstant;
         if (creep.transfer(target, resourceType) === ERR_NOT_IN_RANGE) {
             creep.moveTo(target, { visualizePathStyle: { stroke: '#ffffff' } });
         }

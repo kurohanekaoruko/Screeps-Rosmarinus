@@ -11,7 +11,7 @@ interface Room {
     powerSpawn: StructurePowerSpawn;
     /** 房间中的factory对象 */
     factory: StructureFactory;
-    /** 房间中的tower对象 */
+    /** 房间中的tower数组 */
     tower: StructureTower[];
     /** 房间中的nuker对象 */
     nuker: StructureNuker;
@@ -27,11 +27,13 @@ interface Room {
     mass_stores: (StructureStorage | StructureTerminal | StructureFactory | StructureContainer)[];
     /** 房间等级 */
     level: number;
+    /** 房间是否为自己所有 */
+    my: boolean;
 
     // 房间初始化
     init(): void;
     // 房间建筑缓存更新
-    update(): void;
+    update(type?: StructureConstant): void;
     // 房间运行
     run(): void;
     /** 自动市场交易 */
@@ -48,7 +50,9 @@ interface Room {
     CalculateEnergy(abilityList: any[]): number;
     // 计算角色孵化所需能量
     CalculateRoleEnergy(role: string): number;
+    // 全部建筑工作
     allStructureWork(): void;
+    // 计算中心点
     CacheCenterPos(): void;
     // 计算房间内所有结构体能量
     AllEnergy(): number;
@@ -58,6 +62,8 @@ interface Room {
     GenerateBodys(abilityList: any[]): any[];
     // 获取房间内最近的source
     closestSource(creep: Creep): Source;
+    // 自动按照预设布局建造
+    autoLayout(): void;
 }
 
 interface RoomMemory {
@@ -89,36 +95,6 @@ interface RoomMemory {
     factory: boolean;
     /** 是否开启powerSpawn */
     powerSpawn: boolean;
-
-
-    // /** 房间内所有tower的id */
-    // towers: Id<StructureTower>[];
-    // /** 房间内所有spawn的id */
-    // spawns: Id<StructureSpawn>[];
-    // /** 房间内所有extension的id */
-    // extensions: Id<StructureExtension>[];
-    // /** 房间内extractor的id */
-    // extractor: Id<StructureExtractor> | '';
-    // /** 房间内所有container的id */
-    // containers: Id<StructureContainer>[];
-    // /** 房间内所有sourceContainer的id */
-    // sourceContainers: { [id: Id<Source>]: Id<StructureContainer>[] };
-    // /** 房间内mineralContainer的id */
-    // mineralContainer: Id<StructureContainer> | '';
-    // /** 房间内controllerContainer的id */
-    // controllerContainer: Id<StructureContainer> | '';
-    // /** 房间内所有link的id */
-    // links: Id<StructureLink>[];
-    // /** 房间内所有sourcelink的id */
-    // sourceLinks: { [id: Id<Source>]: Id<StructureLink>[] };
-    // /** 房间内controllerLink的id */
-    // controllerLink: Id<StructureLink> | '';
-    // /** 房间内manageLink的id */
-    // manageLink: Id<StructureLink> | '';
-    // /** 房间内nuker的id */
-    // nuker: Id<StructureNuker> | '';
-    // /** 房间内所有ruin的id */
-    // ruins: Id<StructureRuin>[];
 
     /** 防御模式 */
     defender: boolean;

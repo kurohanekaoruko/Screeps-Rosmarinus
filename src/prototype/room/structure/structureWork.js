@@ -20,11 +20,10 @@ export default class StructureWork extends Room {
         let Hostiles = (global.Hostiles || []).map(id => Game.getObjectById(id)).filter(o => o);
         if (Hostiles.length > 0) {
             towers.forEach(tower => {
-                if (Hostiles.length > 0) {
-                    let index = Math.floor(Math.random() * Hostiles.length);
-                    tower.attack(Hostiles[index]);
-                    return;
-                }
+                if (Hostiles.length == 0) return;
+                let index = Math.floor(Math.random() * Hostiles.length);
+                tower.attack(Hostiles[index]);
+                return;
             })
             return;
         }

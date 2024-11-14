@@ -1,7 +1,7 @@
 export default class AutoMarket extends Room {
     // 自动市场交易
     autoMarket() {
-        if (Game.time % 20 !== 0) return;
+        if (Game.time % 50 !== 0) return;
         const autoMaket = Memory[global.BOT_NAME]['autoMarket'][this.name];
         if(!autoMaket) return;
         for(const item of autoMaket) {

@@ -12,6 +12,7 @@ import harvest_carry from './harvest_carry';
 import dismantle from './dismantle';
 import healer from './healer';
 import claimer from './claimer';
+import lclaimer from './lclaimer';
 import double_attack from './doubleSquadRole/double_attack';
 import double_dismantle from './doubleSquadRole/double_dismantle';
 import double_carry from './doubleSquadRole/double_carry';
@@ -21,5 +22,5 @@ import double_tough from './doubleSquadRole/double_tough';
 
 
 // 导出所有角色函数
-export {harvester, carrier, transport, manage, upgrader, builder, repair, miner, harvest_carry, claimer,
+export {harvester, carrier, transport, manage, upgrader, builder, repair, miner, harvest_carry, claimer, lclaimer,
         dismantle, healer, double_attack, double_dismantle, double_carry, double_heal, double_tough};

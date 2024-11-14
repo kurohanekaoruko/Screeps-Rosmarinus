@@ -2,58 +2,104 @@
 export default {
     room: {
         // 添加房间
-        add(roomName: string, mode: string, layout: string, center: {x: number, y: number}) {
+        add(roomName: string, mode: string, layout: string, x: number, y: number) {
             const BOT_NAME = global.BaseConfig.BOT_NAME;
             if(!Memory[BOT_NAME]['rooms'][roomName])
                 Memory[BOT_NAME]['rooms'][roomName] = {
                     mode: mode ?? 'main',
-                    layout: layout ?? '',
                 };
-            if(center) Memory[BOT_NAME]['rooms'][roomName].center = center;
+            if(layout) Memory[BOT_NAME]['rooms'][roomName].layout = layout;
+            if(x && y) Memory[BOT_NAME]['rooms'][roomName].center = {x, y};
             console.log(`已添加房间${roomName}。`);
-            return;
+            return OK;
         },
         // 删除房间
         remove(roomName: string) {
             delete Memory[global.BOT_NAME]['rooms'][roomName];
             console.log(`已删除房间${roomName}。`);
-            return;
+            return OK;
         },
         // 查看房间列表
         list() {
             console.log(`房间列表：${Object.keys(Memory[global.BOT_NAME]['rooms']).join('、')}`);
-            return;
-        },
-        // 设置房间布局
-        setlayout(roomName: string, layout: string='ros') {
-            Memory[global.BOT_NAME]['rooms'][roomName].layout = layout;
-            console.log(`已设置${roomName}的房间布局为${layout}。`);
-            return;
+            return OK;
         },
         // 设置房间模式
         setmode(roomName: string, mode: string='main') {
+            const room = Game.rooms[roomName];
+            if(!room || !room.my || Memory[global.BOT_NAME]['rooms'][roomName]) {
+                console.log(`房间${roomName}不存在、未拥有或未添加。`);
+                return OK;
+            }
             Memory[global.BOT_NAME]['rooms'][roomName].mode = mode;
             console.log(`已设置${roomName}的运行模式为${mode}。`);
+            return OK;
+        },
+        // 设置房间布局
+        setlayout(roomName: string, layout: string, x: number, y: number) {
+            const room = Game.rooms[roomName];
+            if(!room || !room.my || Memory[global.BOT_NAME]['rooms'][roomName]) {
+                console.log(`房间${roomName}不存在、未拥有或未添加。`);
+                return;
+            }
+            if(!layout) {
+                Memory[global.BOT_NAME]['rooms'][roomName].layout = '';
+                delete Memory[global.BOT_NAME]['rooms'][roomName].center;
+                console.log(`已清除 ${roomName} 的布局设置。`);
+                return;
+            }
+            Memory[global.BOT_NAME]['rooms'][roomName].layout = layout;
+            Memory[global.BOT_NAME]['rooms'][roomName].center = { x, y };
+            Memory['rooms'][roomName].centralPos = { x, y };
+            console.log(`已设置 ${roomName} 的布局为 ${layout}, 布局中心为 (${x},${y})。`);
             return;
         },
-        // 设置布局中心
+        // 设置房间中心
         setcenter(roomName: string, x: number, y: number) {
+            const room = Game.rooms[roomName];
+            if(!room || !room.my || Memory[global.BOT_NAME]['rooms'][roomName]) {
+                console.log(`房间 ${roomName} 不存在、未拥有或未添加。`);
+                return;
+            }
             Memory[global.BOT_NAME]['rooms'][roomName].center = { x, y };
-            console.log(`已设置${roomName}的布局中心为${x},${y}。`);
+            Memory['rooms'][roomName].centralPos = { x, y };
+            console.log(`已设置 ${roomName} 的布局中心为 (${x},${y})。`);
             return;
+        },
+        // 开关自动布局
+        autolayout(roomName: string) {
+            const room = Game.rooms[roomName];
+            if(!room || !room.my || !Memory[global.BOT_NAME]['rooms'][roomName]) {
+                console.log(`房间 ${roomName} 不存在、未拥有或未添加。`);
+                return;
+            }
+            const layout = Memory[global.BOT_NAME]['rooms'][roomName].layout;
+            if(!layout) {
+                console.log(`房间 ${roomName} 未设置布局。`);
+                return;
+            }
+            const center = Memory[global.BOT_NAME]['rooms'][roomName].center;
+            if(layout && !center) {
+                console.log(`房间  ${roomName} 未设置布局中心。`);
+                return;
+            }
+            const memory = Memory[global.BOT_NAME]['rooms'][roomName];
+            memory.autolayout = !memory.autolayout;
+            console.log(`已${memory.autolayout ? '开启' : '关闭'} ${roomName} 的自动布局.`);
+            return OK;
         },
         // 开启lab
         labopen(roomName: string) {
             const room = Game.rooms[roomName];
             room.memory.lab = true;
-            console.log(`已开启${roomName}的lab合成。`);
+            console.log(`已开启 ${roomName} 的lab合成。`);
             return;
         },
         // 关闭lab
         labstop(roomName: string) {
             const room = Game.rooms[roomName];
             room.memory.lab = false;
-            console.log(`已关闭${roomName}的lab合成。`);
+            console.log(`已关闭 ${roomName} 的lab合成。`);
             return;
         },
         // 设置lab合成底物

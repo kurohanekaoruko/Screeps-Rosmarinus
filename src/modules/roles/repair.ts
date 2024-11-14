@@ -85,9 +85,9 @@ const UnitRepair = {
     source: function (creep: Creep) {   // 获取能量
         if(!creep.memory.ready) return false;
         if(!creep.moveHomeRoom()) return;
-        if(creep.ticksToLive < 50 && creep.body.some(part => part.boost)) {
+        if(creep.ticksToLive < 30 && creep.body.some(part => part.boost)) {
             if(creep.unboost()) creep.suicide();
-            return
+            return false;
         }
         creep.takeEnergy();
         if(creep.store.getFreeCapacity() === 0) {

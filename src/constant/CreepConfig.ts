@@ -1,5 +1,5 @@
 import { harvester, carrier, transport, manage, upgrader, builder, repair, miner, 
-         harvest_carry, dismantle, healer, claimer } from '@/modules/roles'
+         harvest_carry, dismantle, healer, claimer, lclaimer } from '@/modules/roles'
 import { Scout, OutHarvester, OutTransport, OutBuilder, Reserver, OutDefender, OutInvader, OutAttack } from '@/modules/roles/outWork';
 import { depositHarvest, depositTransport } from '@/modules/roles/deposit-collect';
 import { power_attack, power_heal, power_carry } from '@/modules/roles/power-collect';
@@ -40,7 +40,7 @@ export const RoleData: RoleConfig = {
     
     /* 占领房间 */
     'claimer': { num: 0, ability: [0, 0, 4, 0, 0, 0, 4, 0], level: 11, adaption: true, work: claimer },
-    'long-claimer': { num: 0, ability: [0, 0, 10, 0, 0, 9, 1, 0], level: 11, code: 'LC', work: claimer },
+    'lclaimer': { num: 0, ability: [0, 0, 10, 0, 0, 9, 1, 0], level: 11, code: 'LC', action: lclaimer },
 
     /* 战斗相关 */
     'dismantle': { num: 0, ability: [25, 0, 25, 0, 0, 0, 0, 0], level: 11, code: 'DI', mission: dismantle}, // 拆迁机

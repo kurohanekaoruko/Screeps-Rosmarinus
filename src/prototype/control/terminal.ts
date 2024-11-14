@@ -2,7 +2,7 @@
 
 export default {
     // 发送资源
-    send({room, target, type, amount}){
+    send(room?: string, target?: string, type?: any, amount?: number){
         if(room && target && type && amount) {
             const terminal = Game.rooms[room].terminal;
             if (!terminal || terminal.cooldown !== 0) {
@@ -19,6 +19,7 @@ export default {
             } else {
                 console.log(`${room} 发送资源失败，错误代码：${result}`);
             }
+            return result;
         }
         if(!room && target && type && amount) {
             let total = amount;
@@ -41,8 +42,9 @@ export default {
                     console.log(`${room.name} 发送资源失败，错误代码：${result}`);
                 }
             }
+            return OK;
         }
-        return;
+        return ERR_INVALID_ARGS;
     },
     // 显示终端资源
     showTerminal({roomName, type}) {
@@ -95,20 +97,22 @@ export default {
                     // 按价格从高到低排序
                     orders.sort((a, b) => b.price - a.price);
                     // 只考虑前10个订单
-                    const topOrders = orders.slice(0, 10);
+                    const topOrders = orders.filter(order => 
+                                    order.price > orders[0].price * 0.8)
+                                    .slice(0, 10);
                     // 计算这些订单的平均价格
                     const averagePrice = topOrders.reduce((sum, order) => sum + order.price, 0) / topOrders.length;
                     // 过滤掉高于平均价格1.2倍的订单
                     const filteredOrders = topOrders.filter(order => order.price <= averagePrice * 1.2);
                     if (filteredOrders.length > 0) {
-                        // 选择过滤后的最高价格作为求购价格，并稍微降低一点以确保订单能被接受
-                        finalPrice = filteredOrders[0].price * 0.999;
+                        // 选择过滤后的最高价格稍微降低一点作为求购价格
+                        finalPrice = filteredOrders[0].price * 0.99;
                     } else {
-                        console.log(`${type} 的市场求购订单价格异常，无法创建购买订单。`);
+                        console.log(`${type} 的市场求购订单价格异常，无法创建求购订单。`);
                         return ERR_NOT_FOUND;
                     }
                 } else {
-                    console.log(`没有找到 ${type} 的市场求购订单，无法创建购买订单。`);
+                    console.log(`没有找到 ${type} 的市场求购订单，无法创建求购订单。`);
                     return ERR_NOT_FOUND;
                 }
             }
@@ -141,14 +145,16 @@ export default {
                     // 按价格从低到高排序
                     orders.sort((a, b) => a.price - b.price);
                     // 只考虑前10个订单
-                    const topOrders = orders.slice(0, 10);
+                    const topOrders = orders.filter(order =>
+                                    order.price <= orders[0].price * 1.2)
+                                    .slice(0, 10);
                     // 计算这些订单的平均价格
                     const averagePrice = topOrders.reduce((sum, order) => sum + order.price, 0) / topOrders.length;
                     // 过滤掉低于平均价格0.8倍的订单
                     const filteredOrders = topOrders.filter(order => order.price >= averagePrice * 0.8);
                     if (filteredOrders.length > 0) {
                         // 选择过滤后的最低价格作为出售价格，并稍微提高一点以确保订单能被接受
-                        finalPrice = filteredOrders[0].price * 1.001;
+                        finalPrice = filteredOrders[0].price * 1.01;
                     } else {
                         console.log(`${type} 的市场出售订单价格异常，无法创建出售订单。`);
                         return ERR_NOT_FOUND;
@@ -233,6 +239,7 @@ export default {
         }
         return result;
     },
+    // 清理无效订单
     orderClear() {
         const TIME_THRESHOLD = 50000; // 时间阈值
         const MAX_ORDERS = 200; // 最大订单数
@@ -254,6 +261,7 @@ export default {
             ordersToDelete.forEach(orderId => Game.market.cancelOrder(orderId));
         }
     },
+    // 自动市场交易
     autoMarket: {
         list(roomName: string) {
             const BOT_NAME = global.BOT_NAME;
