@@ -1,10 +1,11 @@
 import { errorMapper } from './errorMapper.js'
+import { BaseConfig } from '@/constant/config.js'
 
 /**
  * 基本框架，用于管理游戏循环，挂载各种模块
  */
 export const createApp = () => {
-    const name = "RosmarinusBot"
+    const name = BaseConfig.BOT_NAME;
     const events = {init: [], tickStart: [], tick: [], tickEnd: []}
     
     let runRoom = () => {};
@@ -26,7 +27,10 @@ export const createApp = () => {
         }
     }
 
-    const mount = (func: () => void) => { func() }
+    const mount = (func: () => void) => {
+        func();
+        console.log(`[${name}] 原型拓展已挂载。`)
+    }
 
     const on = (callbacks: any) => {
         Object.keys(callbacks).forEach(type => {
@@ -42,7 +46,6 @@ export const createApp = () => {
         if (Room.prototype.init) initEntities(Game.rooms);
         if (Creep.prototype.init) initEntities(Game.creeps);
         if (PowerCreep.prototype.init) initEntities(Game.powerCreeps);
-        console.log('全局初始化完成');
     };
 
     const tickStart = () => events.tickStart.forEach(callback => errorMapper(callback));

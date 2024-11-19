@@ -35,7 +35,7 @@ export const RoleData: RoleConfig = {
     'builder': { num: 0, ability: [1, 1, 2, 0, 0, 0, 0, 0], adaption: true, level: 10, code: 'B', work: builder }, // 建造
     'repair': { num: 0, ability: [1, 1, 1, 0, 0, 0, 0, 0], adaption: true, level: 8, code: 'R', work: repair }, //维修、刷墙
     'miner': { num: 0, ability: [1, 1, 2, 0, 0, 0, 0, 0], adaption: true, level: 6, code: 'MR', work: miner }, // 矿工
-    'har-car': { num: 0, ability: [1, 2, 2, 0, 0, 0, 0, 0], level: 2, code: 'HC', work: harvest_carry }, // 采集搬运一体机，处理停摆状况，以及房间早期没有container时孵化
+    'har-car': { num: 0, ability: [1, 1, 2, 0, 0, 0, 0, 0], level: 2, code: 'HC', work: harvest_carry }, // 采集搬运一体机，处理停摆状况，以及房间早期没有container时孵化
     'speedup-upgrad': { num: 0, ability: [2, 1, 1, 0, 0, 0, 0, 0], adaption: true, level: 10, code: 'SU', work: upgrader }, // 加速升级
     
     /* 占领房间 */

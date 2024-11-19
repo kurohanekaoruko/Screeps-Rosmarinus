@@ -20,5 +20,9 @@ export default {
         }
         delete memory[args[args.length - 1]];
         return OK;
+    },
+    log(text: string, ...args: any[]): OK | Error {
+        console.log(`[${global.BOT_NAME}] ${text}`, ...args);
+        return OK;
     }
 }

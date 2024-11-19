@@ -9,9 +9,9 @@ import AutoLayout from "./auto/autoLayout"
 
 
 import Mission from "./mission"
-import MissionPools from "./mission/MissionPools"
-import MissionAdd from "./mission/MissionAdd"
-import MissionGet from "./mission/MissionGet"
+import MissionPools from "./mission/pool/MissionPools"
+import MissionAdd from "./mission/pool/MissionAdd"
+import MissionGet from "./mission/pool/MissionGet"
 
 
 const plugins = [

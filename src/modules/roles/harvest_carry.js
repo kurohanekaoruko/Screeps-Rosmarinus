@@ -10,6 +10,26 @@ const harvest = function (creep) {
         return;
     }
 
+    const ruinedEnergy = creep.pos.findClosestByRange(FIND_RUINS, {
+        filter: (ruin) => ruin.store[RESOURCE_ENERGY] > 0
+    });
+
+    if (ruinedEnergy) {
+        if (creep.withdraw(ruinedEnergy, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+            creep.moveTo(ruinedEnergy, { visualizePathStyle: { stroke: '#ffaa00' }})
+        }
+        return;
+    }
+
+    const container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+        filter: (structure) => structure.structureType === STRUCTURE_CONTAINER && structure.store[RESOURCE_ENERGY] > 0
+    })
+    if (container) {
+        if (creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+            creep.moveTo(container, { visualizePathStyle: { stroke: '#ffaa00' } });
+        }
+    }
+
     // 检查storage是否存在且存储的能量大于10000
     if (creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] > 10000 && creep.room.CheckSpawnAndTower()) {
         if (creep.withdraw(creep.room.storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
@@ -38,6 +58,14 @@ const transfer = function (creep) {
         for (const spawnExtension of spawnExtensions) {
             if (spawnExtension.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                 targets.push(spawnExtension);
+            }
+        }
+
+        // 找tower
+        if(targets.length === 0) {
+            const towers = creep.room.tower?.filter(o => o.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
+            if (towers && towers.length > 0) {
+                targets.push(towers[0]);
             }
         }
 

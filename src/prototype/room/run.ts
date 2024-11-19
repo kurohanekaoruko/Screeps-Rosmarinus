@@ -14,12 +14,9 @@ export default class RoomRun extends Room {
     }
     // 房间运行
     run() {
-        const BotMemory = global.BotMem();
-        if (!this.controller || !this.controller.my || !BotMemory['rooms'][this.name]) return;
-        if(!Memory.MissionPools[this.name]) { this.init() }
         if(Game.time % 100 == 0) this.update();  // 定期更新缓存
 
-        this.MissionUpdate();  // 任务更新
+        
         this.roomCheck();  // 房间定期检查
         this.allStructureWork();    // 处理建筑物行为，包括tower、link
         this.autoMarket();       // 自动市场交易

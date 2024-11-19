@@ -10,16 +10,16 @@ export default class MissionPools extends Room {
             'build',
             'repair',
             'walls',
-            'send'
+            'send',
+            'spawn'
         ]
         for (const type of Object.keys(Pools)) { if(!PoolTypes.includes(type)) delete Pools[type] }
-        for (const type of PoolTypes) { if(!Pools[type]) Pools[type] = [] }
-        
+        for (const type of PoolTypes) { Pools[type] = [] }
         return OK;
     }
 
     // 获取任务池
-    private getPool(type: task["type"]) {
+    private getPool(type: Task["type"]) {
         const memory = Memory.MissionPools[this.name];
         if(!memory) return null;
         if(memory[type]) return memory[type];
@@ -28,8 +28,34 @@ export default class MissionPools extends Room {
     }
     
     // 添加任务到任务池
-    private pushTaskToPool(type: task["type"], task: task) {
+    private pushTaskToPool(type: Task["type"], task: Task) {
+        if(!Memory.MissionPools[this.name][type]) {
+            console.log(`任务池 ${type} 不存在`);
+            return ERR_NOT_FOUND;
+        }
+        if(!task) return ERR_NOT_FOUND;
         Memory.MissionPools[this.name][type].push(task);
+        return OK;
+    }
+
+    // 删除任务池中的任务
+    private removeTaskFromPool(type: Task["type"], index: number) {
+        if(!Memory.MissionPools[this.name][type]) {
+            console.log(`任务池 ${type} 不存在`);
+            return ERR_NOT_FOUND;
+        }
+        Memory.MissionPools[this.name][type].splice(index, 1);
+        return OK;
+    }
+
+    // 修改任务池中的任务
+    private modifyTaskInPool(type: Task["type"], index: number, task: Task) {
+        if(!Memory.MissionPools[this.name][type]) {
+            console.log(`任务池 ${type} 不存在`);
+            return ERR_NOT_FOUND;
+        }
+        Memory.MissionPools[this.name][type][index] = task;
+        return OK;
     }
 
     // 生成一个16进制id
@@ -40,11 +66,9 @@ export default class MissionPools extends Room {
     }
 
     // 添加任务到任务池
-    public addMissionToPool(type: task["type"], pos: task["pos"], level: task["level"], data: task["data"]) {
+    public addMissionToPool(type: Task["type"], level: Task["level"], data: Task["data"]) {
         const id = this.generateId(); // 生成id
-        let task: task = {id, type, pos, level, data, lock: false, bind: []}
-        const tasks = this.getPool(type);
-        if (!tasks) { return; }
+        let task: Task = {id, type, level, data, lock: null}
         this.pushTaskToPool(type, task);
         return OK;
     }
@@ -57,13 +81,13 @@ export default class MissionPools extends Room {
     }
 
     // 获取任务池中的任务
-    public getMissionFromPool(type: task["type"], pos?: task["pos"], checkFunc?: (task: task) => boolean) {
+    public getMissionFromPool(type: Task["type"], pos?: string, checkFunc?: (task: Task) => boolean) {
         const tasks = this.getPool(type);
         if (!tasks) { return; }
         if (tasks.length === 0) return null; // 如果没有任务，返回null
 
         // 筛选未锁且有效的任务
-        const unlockedTasks = tasks.filter(task => !task.lock && (checkFunc ? checkFunc(task) : true));
+        const unlockedTasks = tasks.filter(task => task && !task.lock && (checkFunc ? checkFunc(task) : true));
 
         if (unlockedTasks.length === 0) return null; // 如果没有可用任务，返回null
         if (unlockedTasks.length === 1) return unlockedTasks[0]; // 如果只有一个任务，返回该任务
@@ -71,22 +95,23 @@ export default class MissionPools extends Room {
         return unlockedTasks.reduce((prev, curr) => {
             // 任务等级相同时，如果传入了pos，那么根据距离返回任务
             if (prev.level !== curr.level || !pos) return prev.level <= curr.level ? prev : curr;
-            const prevDistance = this.getDistance(prev.pos, pos);
-            const currDistance = this.getDistance(curr.pos, pos);
+            if (!prev.data.pos || !curr.data.pos) return prev;
+            const prevDistance = this.getDistance(prev.data.pos, pos);
+            const currDistance = this.getDistance(curr.data.pos, pos);
             return prevDistance <= currDistance ? prev : curr;
         });
     }
 
     // 不考虑优先级，直接获取第一个任务
-    public getMissionFromPoolFirst(type: task["type"], checkFunc?: (task: task) => boolean) {
-        const tasks = this.getPool(type).filter(task => !task.lock && (checkFunc ? checkFunc(task) : true));
+    public getMissionFromPoolFirst(type: Task["type"], checkFunc?: (task: Task) => boolean) {
+        const tasks = this.getPool(type).filter(task => task && !task.lock && (checkFunc ? checkFunc(task) : true));
         if (!tasks) { return; }
         if (tasks.length === 0) return null; // 如果没有任务，返回null
         return tasks[0];
     }
 
     // 获取随机一个任务
-    public getMissionFromPoolRandom(type: task["type"]) {
+    public getMissionFromPoolRandom(type: Task["type"]) {
         const tasks = this.getPool(type);
         if (!tasks) { return; }
         if (tasks.length === 0) return null; // 如果没有任务，返回null
@@ -94,12 +119,12 @@ export default class MissionPools extends Room {
     }
 
     // 获取全部任务
-    public getAllMissionFromPool(type: task["type"]) {
+    public getAllMissionFromPool(type: Task["type"]) {
         return this.getPool(type);
     }
 
     // 用id获取任务池中的任务
-    public getMissionFromPoolById(type: task["type"], id: task["id"]) {
+    public getMissionFromPoolById(type: Task["type"], id: Task["id"]) {
         const tasks = this.getPool(type);
         if (!tasks) { return; }
         if (tasks.length === 0) return null; // 如果没有任务，返回null
@@ -107,7 +132,7 @@ export default class MissionPools extends Room {
     }
 
     // 检查是否有相同任务
-    public checkSameMissionInPool(type: task["type"], data: task["data"]) {
+    public checkSameMissionInPool(type: Task["type"], data: Task["data"]) {
         const tasks = this.getPool(type);
         if (!tasks) { return; }
         if (!tasks.length) return null; // 如果没有任务，返回null
@@ -117,23 +142,23 @@ export default class MissionPools extends Room {
             if (!sameInPool) continue;
             return task.id; // 如果存在相同任务，返回任务的id
         }
-        return null
+        return null; // 如果不存在相同任务，返回null
     }
 
     // 检查任务池中是否存在任务
-    public checkMissionInPool(type: task["type"]) {
+    public checkMissionInPool(type: Task["type"]) {
         const tasks = this.getPool(type);
         return tasks && tasks.length > 0
     }
 
     // 获取任务池中的任务数量
-    public getMissionNumInPool(type: task["type"]) {
+    public getMissionNumInPool(type: Task["type"]) {
         const tasks = this.getPool(type);
         return tasks ? tasks.length : 0;
     }
 
     // 锁定任务池中的任务
-    public lockMissionInPool(type: task["type"], id: task["id"]) {
+    public lockMissionInPool(type: Task["type"], id: Task["id"], creepId: Id<Creep>) {
         const tasks = Memory.MissionPools[this.name][type];
         if (!tasks) { return; }
         if (tasks.length === 0) return; // 如果没有任务，不处理
@@ -141,12 +166,12 @@ export default class MissionPools extends Room {
         const task = tasks.find(t => t.id === id);
         if (!task) { console.log(`任务${id}不存在`);return;}
 
-        task.lock = true
+        task.lock = creepId;
         return OK;
     }
 
     // 解锁任务池中的任务
-    public unlockMissionInPool(type: task["type"], id: task["id"]) {
+    public unlockMissionInPool(type: Task["type"], id: Task["id"]) {
         const tasks = Memory.MissionPools[this.name][type];
         if (!tasks) { return; }
         if (!tasks.length) return; // 如果没有任务，不处理
@@ -154,45 +179,44 @@ export default class MissionPools extends Room {
         const task = tasks.find(t => t.id === id)
         if (task) {console.log(`任务${id}不存在`);return;}
 
-        task.lock = false
-        task.bind = []
+        task.lock = null;
         return OK;
     }
 
     // 更新任务池中的任务
-    public updateMissionPool(type: task["type"], id: task["id"], {pos, level, data}) {
-        const tasks = Memory.MissionPools[this.name][type];
+    public updateMissionPool(type: Task["type"], id: Task["id"], {level, data}) {
+        const tasks = this.getPool(type);
         if (!tasks) { return; }
         if (!tasks.length) return; // 如果没有任务，不处理
 
         const task = tasks.find(t => t.id === id);
         if (!task) { console.log(`任务 ${id} 不存在`); return;}
 
-        if (pos) task.pos = pos
         if (level) task.level = level
         if (data) {
             for(const key in data){
                 task.data[key] = data[key];
             }
         }
+
         return OK;
 }
 
     // 删除任务池中的任务
-    public deleteMissionFromPool(type: task["type"], id: task["id"]) {
-        const tasks = Memory.MissionPools[this.name][type];
+    public deleteMissionFromPool(type: Task["type"], id: Task["id"]) {
+        const tasks = this.getPool(type);
         if (!tasks) { return; }
         if (!tasks.length) return; // 如果没有任务，不处理
 
         const index = tasks.findIndex(t => t.id === id);
         if (index === -1) {return;}
 
-        tasks.splice(index, 1)
+        this.removeTaskFromPool(type, index);
         return OK
     }
 
     // 检查任务池中的任务是否已完成、过期、失效
-    public checkMissionPool(type: task["type"], checkFunc: (t: task) => boolean) {
+    public checkMissionPool(type: Task["type"], checkFunc: (t: Task) => boolean) {
         const tasks = this.getPool(type);
         if (!tasks) { return; }
         if (!tasks.length) return; // 如果没有任务，不处理
@@ -205,25 +229,19 @@ export default class MissionPools extends Room {
     }
 
     // 提交任务完成信息
-    public submitMissionComplete(type: task["type"], id: task["id"], bindid: task["bind"][number], data: task["data"], deleteFunc: (t: any) => boolean) {
+    public submitMission(type: Task["type"], id: Task["id"], data: Task["data"], deleteFunc: (t: any) => boolean) {
         // 定位任务
         const tasks = Memory.MissionPools[this.name][type];
         if (!tasks) { return; }
         if (!tasks.length) return; // 如果没有任务，不处理
         const task = tasks.find(t => t.id === id);
-
+        if (!task) { console.log(`任务${id}不存在`);return;}
         // 更新数据
         for(const key in data){
             task.data[key] = data[key];
         }
-
-        // 去除绑定
-        const index = task.bind.findIndex(id => id === bindid);
-        if(index !== -1) {
-            task.bind.splice(index, 1);
-            task.lock = false;
-        }
-
+        // 去除锁定
+        task.lock = null;
         // 判断任务是否该被删除
         if(deleteFunc(task.data)) this.deleteMissionFromPool(type, id);
         return OK;

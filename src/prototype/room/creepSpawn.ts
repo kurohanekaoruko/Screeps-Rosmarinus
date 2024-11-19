@@ -32,8 +32,6 @@ export default class CreepSpawn extends Room {
         const lv = this.level;
         const roomName = this.name;
 
-        const spawnQueue = {}
-
         for(const role in RoleData) {
             const currentNum = (global.CreepNum[roomName][role] || 0) + 
                                (global.QueueCreepNum[roomName][role] || 0);
@@ -41,19 +39,11 @@ export default class CreepSpawn extends Room {
             const result = this.RoleSpawnCheck(role, currentNum, num)
             if (result) {
                 const level = RoleData[role]['level'];
-                if(!spawnQueue[level]) {
-                    spawnQueue[level] = [];
-                }
-                spawnQueue[level].push({role, home: roomName});
+                this.SpawnQueueAdd('', [], {role, home: roomName});
             }
         }
 
-        for(const level of Object.keys(spawnQueue).sort()) {
-            const queue = spawnQueue[level];
-            for(const q of queue) {
-                this.SpawnQueueAdd('', [], q);
-            }
-        }
+        global.SpawnQueue[this.name].sort((a:any, b:any) => RoleData[a.memory.role]['level'] - RoleData[b.memory.role]['level']);
     }
     // 检查主要角色是否需要孵化
     RoleSpawnCheck(role: string, currentNum: number, num: number) {
@@ -97,7 +87,7 @@ export default class CreepSpawn extends Room {
                 return this.checkMissionInPool('repair') || this.checkMissionInPool('walls') || this.checkMissionInPool('build') ;
             },
             'miner': () => currentNum < 1 && roomLevel >= 6 && this.extractor && this.find(FIND_MINERALS)[0]?.mineralAmount > 0,
-            'har-car': () => roomLevel < 3 && currentNum < 2 && (!this.container || this.container.length < 1),
+            'har-car': () => roomLevel < 3 && currentNum < 1 && (!this.container || this.container.length < 1),
             'speedup-upgrad': () => (currentNum < num) && Game.flags['upgrad-speedup-' + this.name]
         };
 
@@ -131,7 +121,7 @@ export default class CreepSpawn extends Room {
             const { role } = creepInfo.memory;
             const number = (Game.time*16 + Math.floor(Math.random()*16))
                             .toString(16).slice(-4).toUpperCase();
-            const name = `${creepInfo.name||RoleData[role].code}#${number}`;
+            const name = `<${creepInfo.name||RoleData[role].code}>#${number}`;
             // 如果没给bodys，则根据role和lv生成bodys
             if(!creepInfo.bodys || creepInfo.bodys.length === 0) {
                 // 从配置表里获取bodypart

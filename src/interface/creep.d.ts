@@ -12,7 +12,7 @@ interface CreepMemory {
     /**creep 的角色*/
     role: string;
     dontPullMe: boolean;
-    mission: task;
+    mission: Task;
     cache: { [key: string]: any };
     ready: boolean;
     lastTargetPos: any;

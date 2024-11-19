@@ -186,8 +186,11 @@ export default class StructureWork extends Room {
         if (!task) return;
         const { targetRoom, resourceType, amount } = task.data;
         let sendAmount = Math.min(amount, terminal.store[resourceType]);
+        const cost = Game.market.calcTransactionCost(sendAmount, this.name, targetRoom);
+        if (cost > terminal.store[RESOURCE_ENERGY]) {
+            sendAmount = Math.floor(sendAmount * terminal.store[RESOURCE_ENERGY] / cost);
+        }
         if (resourceType === RESOURCE_ENERGY) {
-            const cost = Game.market.calcTransactionCost(sendAmount, this.name, targetRoom);
             sendAmount = Math.min(sendAmount, terminal.store[resourceType] - cost);
         }
         const result = terminal.send(resourceType, sendAmount, targetRoom);

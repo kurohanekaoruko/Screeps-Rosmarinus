@@ -7,16 +7,8 @@ export default class MissionGet extends Room {
 
         const task = this.getMissionFromPool('transport', posInfo);
         if(!task) return null;
-        if(!(creep.id in task.bind)) {
-            task.bind.push(creep.id);   // 记录任务绑定creep
-        }
-
-        // 当任务被完全接取，那么锁定任务
-        if(task.bind.map(id => Game.getObjectById(id)?.store.getCapacity() || 0)
-            .reduce((a, b) => a + b, 0)
-            >= (task.data as TransportTask).amount) {
-            task.lock = true;
-        }
+        
+        task.lock = creep.id;
 
         return task;
     }
@@ -25,8 +17,8 @@ export default class MissionGet extends Room {
         const posInfo = `${creep.pos.x}/${creep.pos.y}/${creep.pos.roomName}`
 
         if(this.checkMissionInPool('build')){
-            const checkFunc = (task: task) => {
-                const target = Game.getObjectById((task.data as BuildRepairTask).target as Id<ConstructionSite>)
+            const checkFunc = (task: Task) => {
+                const target = Game.getObjectById((task.data as BuildTask).target as Id<ConstructionSite>)
                 return target && target.progress < target.progressTotal
             };
             const task = this.getMissionFromPool('build', posInfo, checkFunc);
@@ -35,8 +27,8 @@ export default class MissionGet extends Room {
             return task;
         }
         if(this.checkMissionInPool('repair')){
-            const checkFunc = (task: task) => {
-                const target = Game.getObjectById((task.data as BuildRepairTask).target as Id<Structure>)
+            const checkFunc = (task: Task) => {
+                const target = Game.getObjectById((task.data as BuildTask).target as Id<Structure>)
                 return target && target.hits < target.hitsMax
             }
             const task = this.getMissionFromPool('repair', posInfo, checkFunc);
@@ -70,7 +62,7 @@ export default class MissionGet extends Room {
 
     getSendMission() {
         const terminal = this.terminal;
-        const checkFunc = (task: task) => {
+        const checkFunc = (task: Task) => {
             const data = task.data as SendTask;
             const resourceType = data.resourceType;
             return terminal.store[resourceType] >= Math.min(data.amount, 10000);
@@ -93,5 +85,16 @@ export default class MissionGet extends Room {
             sends[data.resourceType] = data.amount + (sends[data.resourceType] || 0);
         }
         return sends;
+    }
+
+    getSpawnMission() {
+        const energy = this.energyAvailable;
+        const checkFunc = (task: Task) => {
+            const data = task.data as SpawnTask;
+            return energy >= data.energy;
+        }
+        const task = this.getMissionFromPool('spawn', checkFunc);
+        if(!task) return null;
+        return task;
     }
 }

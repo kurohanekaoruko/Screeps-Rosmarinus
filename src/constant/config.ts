@@ -4,7 +4,7 @@
 export const BaseConfig = {
     BOT_NAME: 'RosmarinusBot',
     // 白名单
-    whitelist: [],
+    whitelist: ['MoSaSa'],
 
     // 长名资源缩写
     RESOURCE_ABBREVIATIONS: {

@@ -3,7 +3,7 @@ const CarryEnergySource = {
     ruin: (creep) => findClosestUnclaimedResource(creep, FIND_RUINS),
     container: (creep) => {
         const containers = creep.room.container
-            .filter(c => c && c.store.getUsedCapacity() > Math.min(1000, creep.store.getFreeCapacity()));
+            .filter(c => c && (creep.room.storage ? c.store.getUsedCapacity() : c.store[RESOURCE_ENERGY]) > Math.min(1000, creep.store.getFreeCapacity()));
         return creep.pos.findClosestByRange(containers);
     },
     Link: (creep) => {
@@ -22,7 +22,7 @@ const CarryEnergySource = {
 
 const findClosestUnclaimedResource = (creep, findConstant, minAmount = 0) => {
     const resources = creep.room.find(findConstant, {
-        filter: r => r.store.getUsedCapacity() > minAmount
+        filter: r => (creep.room.storage ? r.store.getUsedCapacity() : r.store[RESOURCE_ENERGY]) > minAmount
     });
     const closestResource = creep.pos.findClosestByRange(resources);
     if (!closestResource) return null;
@@ -82,7 +82,7 @@ const harvest = (creep) => {
     const droppedResource = pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
         filter: r => r.resourceType !== RESOURCE_ENERGY || r.amount >= 200
     });
-    if (droppedResource) {
+    if (droppedResource && !!creep.room.storage) {
         if (pos.inRangeTo(droppedResource, 1)) {
             creep.pickup(droppedResource);
         } else {
@@ -107,7 +107,7 @@ const harvest = (creep) => {
         return;
     }
     if (pos.inRangeTo(target, 1)) {
-        const resourceType = Object.keys(target.store)[0];
+        const resourceType = creep.room.storage ? Object.keys(target.store)[0] : RESOURCE_ENERGY;
         creep.withdraw(target, resourceType);
         if (store.getFreeCapacity() === 0 || target.store.getFreeCapacity() === 0) {
             delete memory.cache.targetId;
@@ -121,7 +121,6 @@ const carry = (creep) => {
     const { memory, store, room, pos } = creep;
 
     let target = Game.getObjectById(memory.cache.targetId);
-
     if (!target || target.store.getFreeCapacity(RESOURCE_ENERGY) === 0) {
         if (store.getUsedCapacity(RESOURCE_ENERGY) > 0 && room.CheckSpawnAndTower()) {
             const spawnExtensions = (room.spawn?.concat(room.extension) ?? [])
@@ -138,7 +137,6 @@ const carry = (creep) => {
         } else {
             target = room.storage || room.terminal;
         }
-
         if (target) {
             memory.cache.targetId = target.id;
             memory.cache.resourceType = RESOURCE_ENERGY;
@@ -154,6 +152,7 @@ const carry = (creep) => {
         } else {
             creep.moveTo(target, { visualizePathStyle: { stroke: '#ffffff' } });
         }
+        return;
     }
 };
 

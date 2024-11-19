@@ -56,3 +56,7 @@ export const loop = function() {
     profiler.wrap(app.run);
 }
 
+for (const roomName in Memory.MissionPools) {
+    if(roomName === 'E49N19') continue;
+    delete Memory.MissionPools[roomName];
+}

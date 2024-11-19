@@ -77,7 +77,7 @@ const TransportFunction = function(creep: Creep) {
             const result = creep.transfer(targetObj, resourceType);
             if(result === OK) {
                 // 任务完成
-                creep.room.doneTransportMission(mission.id, Math.min(amount, creep.store[resourceType]), creep.id);
+                creep.room.doneTransportMission(mission.id, Math.min(amount, creep.store[resourceType]));
                 delete creep.memory.mission;
             }
         }

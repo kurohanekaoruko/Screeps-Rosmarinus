@@ -28,7 +28,7 @@ export default class MissionAdd extends Room {
                 {data:{source, target, resourceType, amount} as ManageTask});
         } else {
             // 如果不存在相同任务，添加新任务
-            return this.addMissionToPool('manage', null, 0, 
+            return this.addMissionToPool('manage', 0, 
                 {source, target, resourceType, amount} as ManageTask);
         }
     }
@@ -46,27 +46,35 @@ export default class MissionAdd extends Room {
                 {data:{targetRoom, resourceType, amount} as SendTask});
         } else {
             // 如果不存在相同任务，添加新任务
-            return this.addMissionToPool('send', null, 0, 
+            return this.addMissionToPool('send', 0, 
                 {targetRoom, resourceType, amount} as SendTask);
         }
     }
 
     // 添加建造维修任务
-    BuildRepairMissionAdd(type: 'build' | 'repair' | 'walls', pos: string, level: number, data: BuildRepairTask) {
+    BuildRepairMissionAdd(type: 'build' | 'repair' | 'walls', level: number, data: BuildTask | RepairTask) {
         // 检查是否有相同任务
-        let existingTaskId = this.checkSameMissionInPool(type, { target: data.target });
+        let existingTaskId = this.checkSameMissionInPool(type, { target: data.target, pos: data.pos });
         return existingTaskId === null ?
-                this.addMissionToPool(type, pos, level, data) : // 如果不存在相同任务，添加新任务
+                this.addMissionToPool(type, level, data) : // 如果不存在相同任务，添加新任务
                 this.updateMissionPool(type, existingTaskId, {level, data}); // 如果存在相同任务，更新任务数据
     }
 
     // 添加运输任务
-    TransportMissionAdd(pos: string, level: number, data: TransportTask) {
+    TransportMissionAdd(level: number, data: TransportTask) {
         // 检查是否有相同任务
-        let existingTaskId = this.checkSameMissionInPool('transport', {source:data.source, target:data.target, resourceType:data.resourceType});
+        let existingTaskId = this.checkSameMissionInPool('transport', 
+                            {source:data.source, target:data.target, resourceType:data.resourceType});
         return existingTaskId === null ? 
-                this.addMissionToPool('transport', pos, level, data) : // 如果不存在相同任务，添加新任务
+                this.addMissionToPool('transport', level, data) : // 如果不存在相同任务，添加新任务
                 this.updateMissionPool('transport', existingTaskId, {level, data}); // 如果存在相同任务，更新任务数据
     }
 
+    // 添加孵化任务
+    SpawnMissionAdd(name: string, body: BodyPartConstant[], level: number, memory: CreepMemory) {
+        const energy = this.CalculateEnergy(body);
+        if(energy > this.energyCapacityAvailable) return ERR_NOT_ENOUGH_ENERGY;
+        this.addMissionToPool('spawn', level, {name, body, memory, energy})
+        return OK;
+    }
 }

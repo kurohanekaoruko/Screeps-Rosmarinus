@@ -195,12 +195,14 @@ export default {
     // 市场交易
     deal: {
         buy(roomName: any, type: any, amount: any, length=20, show=true, ecost= 10) {
+            type = global.BaseConfig.RESOURCE_ABBREVIATIONS[type] || type;
             if (INTERSHARD_RESOURCES.includes(type)) {
                 return global.interShardMarket(type, amount, 'buy', show);
             }
             return handleMarketTransaction(roomName, type, amount, ORDER_SELL, length, show, ecost);
         },
         sell(roomName: any, type: any, amount: any, length=20, show=true, ecost=10) {
+            type = global.BaseConfig.RESOURCE_ABBREVIATIONS[type] || type;
             if (INTERSHARD_RESOURCES.includes(type)) {
                 return global.interShardMarket(type, amount, 'sell', show);
             }

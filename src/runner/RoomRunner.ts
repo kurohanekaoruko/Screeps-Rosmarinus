@@ -3,14 +3,17 @@
  */
 export const roomRunner = function (room: any) {
     if (!room || !room.controller?.my) return;
-    const BOT_NAME = global.BaseConfig.BOT_NAME;
-    if (!Memory[BOT_NAME]['rooms'][room.name]) return;
-    
-    let cpu = Game.cpu.getUsed();
-    if (room.run) room.run();
-    cpu = Game.cpu.getUsed() - cpu;
+    const BotMemory = global.BotMem();
+    if (!BotMemory['rooms'][this.name]) return;
 
-    if(!global.roomCpuInfo) global.roomCpuInfo = {};
-    if(!global.roomCpuInfo[room.name]) global.roomCpuInfo[room.name] = 0;
-    global.roomCpuInfo[room.name] += cpu;
+    // 初始化
+    if (!Memory.MissionPools[this.name])
+        this.init();
+    // 任务更新
+    if (room.MissionUpdate)
+        room.MissionUpdate();
+    // 房间运行
+    if (room.run)
+        room.run();
+
 }
