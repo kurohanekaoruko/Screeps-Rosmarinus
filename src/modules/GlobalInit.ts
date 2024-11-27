@@ -10,9 +10,7 @@ export const GlobalInit = {
         global.BOT_NAME = BaseConfig.BOT_NAME;
 
         // 房间基础工作所需的全局变量
-        global.SpawnQueue = {};  // 孵化队列
         global.CreepNum = {};  // Creep数量
-        global.QueueCreepNum = {};    // 孵化队列中Creep数量
-        
+        global.SpawnMissionNum = {};    // 孵化队列中Creep数量
     }
 }

@@ -1,3 +1,5 @@
+import { RoleData, RoleLevelData } from '@/constant/CreepConstant'
+
 /**
  * 任务添加模块
  */
@@ -54,7 +56,7 @@ export default class MissionAdd extends Room {
     // 添加建造维修任务
     BuildRepairMissionAdd(type: 'build' | 'repair' | 'walls', level: number, data: BuildTask | RepairTask) {
         // 检查是否有相同任务
-        let existingTaskId = this.checkSameMissionInPool(type, { target: data.target, pos: data.pos });
+        let existingTaskId = this.checkSameMissionInPool(type, { target: data.target });
         return existingTaskId === null ?
                 this.addMissionToPool(type, level, data) : // 如果不存在相同任务，添加新任务
                 this.updateMissionPool(type, existingTaskId, {level, data}); // 如果存在相同任务，更新任务数据
@@ -71,10 +73,16 @@ export default class MissionAdd extends Room {
     }
 
     // 添加孵化任务
-    SpawnMissionAdd(name: string, body: BodyPartConstant[], level: number, memory: CreepMemory) {
-        const energy = this.CalculateEnergy(body);
+    SpawnMissionAdd(name: string, body: number[], level: number, role: string, memory: CreepMemory) {
+        if(level < 0) level = RoleData[role].level;
+        const bodypart = this.GenerateBodys(body, role);
+        const energy = this.CalculateEnergy(bodypart);
         if(energy > this.energyCapacityAvailable) return ERR_NOT_ENOUGH_ENERGY;
+        memory.role = role;
         this.addMissionToPool('spawn', level, {name, body, memory, energy})
+        if (!global.SpawnMissionNum) global.SpawnMissionNum = {};
+        if (!global.SpawnMissionNum[this.name]) global.SpawnMissionNum[this.name] = {};
+        global.SpawnMissionNum[this.name][role] = (global.SpawnMissionNum[this.name][role] || 0) + 1;
         return OK;
     }
 }

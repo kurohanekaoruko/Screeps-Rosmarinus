@@ -1,10 +1,18 @@
 interface Creep {
     init(): void;
 
+    moveHomeRoom(): boolean;
+    moveToRoom(roomName: string, options?:{[key: string]: any}): any;
+    double_move(target: any, color?: string): void;
+
     takeEnergy(): void;
     boost(boostTypes: string[]): boolean;
     unboost(): boolean;
-    double_move(target: any, color?: string): void;
+    transferOrMoveTo(target: AnyCreep | Structure, resoureType: ResourceConstant, amount?: number): boolean;
+    withdrawOrMoveTo(target: any | Tombstone | Ruin, resoureType?: ResourceConstant, amount?: number): boolean;
+    pickupOrMoveTo(target: any, ...args: any[]): boolean;
+    repairOrMoveTo(target: any, ...args: any[]): boolean;
+    buildOrMoveTo(target: any, ...args: any[]): boolean;
 }
 
 interface CreepMemory {
@@ -27,4 +35,5 @@ interface CreepMemory {
     squad: string;
     boostAttempts: any;
     Rerunt: number;
+    sayText: string[];
 }

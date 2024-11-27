@@ -17,4 +17,16 @@ export default class MissionSubmit extends Room {
         this.submitMission('transport', id, {amount} as any, deleteFunc);
         return OK;
     }
+
+    // 提交孵化任务
+    submitSpawnMission(id: Task['id']) {
+        const task = this.getMissionFromPoolById('spawn', id);
+        if (!task) return;
+        const role = task.data.memory.role;
+        this.deleteMissionFromPool('spawn', id);
+        if (!global.SpawnMissionNum) global.SpawnMissionNum = {};
+        if (!global.SpawnMissionNum[this.name]) global.SpawnMissionNum[this.name] = {};
+        global.SpawnMissionNum[this.name][role] = (global.SpawnMissionNum[this.name][role] || 1) - 1;
+        return OK;
+    }
 }

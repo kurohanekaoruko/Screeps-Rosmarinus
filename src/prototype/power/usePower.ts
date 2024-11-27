@@ -73,9 +73,10 @@ export default class PowerCreepUsePower extends PowerCreep {
         return false;
     }
     Operate_Spawn() {
-        if(!this.room.memory.defender) return false;
         if(!this.room.spawn) return false;
         if(this.store[RESOURCE_OPS] < 100) return false;
+        const roles = ['power-attack', 'power-heal', 'power-carry', 'deposit-harvest', 'deposit-transport']
+        if(this.room.getSpawnMissionTotalByRoles(roles) < 3) return false;
         const powers = this.powers;
         if(PWR_OPERATE_SPAWN in powers && powers[PWR_OPERATE_SPAWN].cooldown <= 0){
             const spawns = this.room.spawn;

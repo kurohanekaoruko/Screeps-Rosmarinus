@@ -6,6 +6,7 @@ function UpdateManageMission(room: Room) {
 // 检查终端资源, 自动调度资源
 function CheckTerminalResAmount(room: Room) {
     if (!room.storage || !room.terminal) return false;
+    if (!room.storage.pos.inRange(room.terminal.pos, 2)) return false;
 
     // 发送任务资源数
     const sendTotal = room.getSendMissionTotalAmount();
@@ -28,12 +29,11 @@ function CheckTerminalResAmount(room: Room) {
 
     // 检查终端自动转入
     for (const resourceType in room.storage.store) {
-        if(room.memory.AUTO_S2T === false) break;
         let amount = 0;
         if(resourceType === RESOURCE_ENERGY && Object.keys(sendTotal).length > 0) {
             amount = Math.min(
                 room.storage.store[resourceType],
-                100000 - room.terminal.store[resourceType]
+                Object.values(sendTotal).reduce((a, b) => a + b, 0) - room.terminal.store[resourceType]
             )
         }
         // 有发送任务时，根据总量来定
@@ -43,6 +43,7 @@ function CheckTerminalResAmount(room: Room) {
                 sendTotal[resourceType] - room.terminal.store[resourceType]
             )
         } else {
+            if(room.memory.AUTO_S2T === false) continue;
             if(exclude.includes(resourceType as ResourceConstant)) continue;
             // 当终端资源不足时，将storage资源补充到终端
             const threshold = resourceType === RESOURCE_ENERGY ? TARGET_ENERGY_THRESHOLD : TARGET_RESOURCE_THRESHOLD;
@@ -101,6 +102,7 @@ function CheckFactoryResAmount(room: Room) {
         if (room.storage && room.storage.store.getFreeCapacity() >= 3000) {
             room.ManageMissionAdd('f', 's', resourceType, 3000);
         } else if (room.terminal && room.terminal.store.getFreeCapacity() >= 3000) {
+            if (!room.storage.pos.inRange(room.terminal.pos, 2)) return false;
             room.ManageMissionAdd('f', 't', resourceType, 3000);
         }
     }

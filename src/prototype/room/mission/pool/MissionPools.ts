@@ -14,7 +14,7 @@ export default class MissionPools extends Room {
             'spawn'
         ]
         for (const type of Object.keys(Pools)) { if(!PoolTypes.includes(type)) delete Pools[type] }
-        for (const type of PoolTypes) { Pools[type] = [] }
+        for (const type of PoolTypes) { if(!Pools[type]) Pools[type] = [] }
         return OK;
     }
 
@@ -185,14 +185,14 @@ export default class MissionPools extends Room {
 
     // 更新任务池中的任务
     public updateMissionPool(type: Task["type"], id: Task["id"], {level, data}) {
-        const tasks = this.getPool(type);
+        const tasks = Memory.MissionPools[this.name][type];
         if (!tasks) { return; }
         if (!tasks.length) return; // 如果没有任务，不处理
 
         const task = tasks.find(t => t.id === id);
         if (!task) { console.log(`任务 ${id} 不存在`); return;}
 
-        if (level) task.level = level
+        if (level !== undefined) task.level = level;
         if (data) {
             for(const key in data){
                 task.data[key] = data[key];

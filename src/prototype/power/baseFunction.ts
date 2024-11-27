@@ -1,7 +1,7 @@
 export default class BaseFunction extends PowerCreep {
     PowerEnabled(): boolean {
         const controller = this.room?.controller;
-        if(controller && !controller.my && !controller.isPowerEnabled) {
+        if(controller?.my && !controller.isPowerEnabled) {
             if(this.pos.isNearTo(controller)) this.enableRoom(controller);
             else this.moveTo(controller)
             return true;
@@ -41,7 +41,7 @@ export default class BaseFunction extends PowerCreep {
         return false
     }
     ToRenew(): boolean {
-        if(this.ticksToLive > 100) return false;
+        if(this.ticksToLive > 300) return false;
         if(this.room.controller?.my && this.room.powerSpawn) {
             const powerSpawn = this.room.powerSpawn;
             if(this.pos.isNearTo(powerSpawn)) {

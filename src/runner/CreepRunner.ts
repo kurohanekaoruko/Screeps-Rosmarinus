@@ -3,7 +3,9 @@
  */
 export const creepRunner = function (creep: any) {
     if (!creep || creep.ticksToLive <= 0 || creep.spawning) return;
-    const BOT_NAME = global.BOT_NAME;
-    if (creep.memory.home && !Memory[BOT_NAME]['rooms'][creep.memory.home]) return;
-    if (creep.run) creep.run();
+
+    if (creep.run)
+        creep.run();    // 运行
+    if (creep.randomSay)
+        creep.randomSay();  // 随机说话
 }

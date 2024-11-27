@@ -1,4 +1,4 @@
-# Rosmarinus-Bot
+# Rosmarinus
 
 ![language-javascript](https://img.shields.io/badge/language-javascript-3178c6)
 ![language-typescript](https://img.shields.io/badge/language-typescript-3178c6)
@@ -20,8 +20,10 @@
 - 基本房间运营的自动化（孵化、采集、升级、建造、维修）
 - 自动填充能量与资源
 - 自动添加建筑工地
-- 自动lab合成
-- 自动factory生产
+- 半自动lab合成
+- 半自动factory生产
+- 连续全自动lab合成任务（未实现）
+- 连续全自动factory生产任务（未实现）
 
 ## 使用方法
 

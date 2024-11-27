@@ -11,7 +11,7 @@ export default class AutoLayout extends Room {
         if(!center) return;
 
         if(memory.layout == 'ros' || memory.layout == 'ros2') {
-            if (!global.BotMem('layoutMemory', this.name))
+            if (!global.BotMem('layout', this.name))
                 rosLayout(this, center, memory.layout);
             rosBuild(this, center);
         }

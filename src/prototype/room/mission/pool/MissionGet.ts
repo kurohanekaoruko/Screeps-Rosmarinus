@@ -17,21 +17,13 @@ export default class MissionGet extends Room {
         const posInfo = `${creep.pos.x}/${creep.pos.y}/${creep.pos.roomName}`
 
         if(this.checkMissionInPool('build')){
-            const checkFunc = (task: Task) => {
-                const target = Game.getObjectById((task.data as BuildTask).target as Id<ConstructionSite>)
-                return target && target.progress < target.progressTotal
-            };
-            const task = this.getMissionFromPool('build', posInfo, checkFunc);
+            const task = this.getMissionFromPool('build', posInfo);
             if(!task) return null;
 
             return task;
         }
         if(this.checkMissionInPool('repair')){
-            const checkFunc = (task: Task) => {
-                const target = Game.getObjectById((task.data as BuildTask).target as Id<Structure>)
-                return target && target.hits < target.hitsMax
-            }
-            const task = this.getMissionFromPool('repair', posInfo, checkFunc);
+            const task = this.getMissionFromPool('repair', posInfo);
             if(!task) return null;
 
             return task;
@@ -51,6 +43,7 @@ export default class MissionGet extends Room {
         }
 
         if(this.checkMissionInPool('walls')){
+            if (this.AllEnergy() < 10000) return null;
             const task = this.getMissionFromPool('walls', posInfo);
             if(!task) return null;
 
@@ -87,6 +80,7 @@ export default class MissionGet extends Room {
         return sends;
     }
 
+    // 获取孵化任务
     getSpawnMission() {
         const energy = this.energyAvailable;
         const checkFunc = (task: Task) => {
@@ -96,5 +90,29 @@ export default class MissionGet extends Room {
         const task = this.getMissionFromPool('spawn', checkFunc);
         if(!task) return null;
         return task;
+    }
+
+    // 获取每种role的孵化数量
+    getSpawnMissionAmount() {
+        const tasks = this.getAllMissionFromPool('spawn');
+        const spawns = {};
+        for(const task of tasks) {
+            const data = task.data as SpawnTask;
+            const role = data.memory.role;
+            spawns[role] = (spawns[role] || 0) + 1;
+        }
+        return spawns;
+    }
+
+    // 获取指定一些role的总孵化数
+    getSpawnMissionTotalByRoles(roles: string[]) {
+        const tasks = this.getAllMissionFromPool('spawn');
+        let num = 0;
+        for(const task of tasks) {
+            const data = task.data as SpawnTask;
+            const role = data.memory.role;
+            if(roles.includes(role)) num++;
+        }
+        return num;
     }
 }

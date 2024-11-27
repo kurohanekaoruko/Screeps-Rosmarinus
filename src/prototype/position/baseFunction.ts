@@ -21,6 +21,12 @@ export default class BaseFunction extends RoomPosition {
     }
     // 是否在指定距离内
     inRange(pos: RoomPosition, range: number): boolean {
+        if (!pos) return false;
         return this.getDistance(pos) <= range;
+    }
+    // 是否位于房间边界
+    isRoomEdge(): boolean {
+        const { x, y } = this;
+        return x === 0 || x === 49 || y === 0 || y === 49;
     }
 }

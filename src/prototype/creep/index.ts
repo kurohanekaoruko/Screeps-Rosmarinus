@@ -1,7 +1,7 @@
 import { assignPrototype } from "@/prototype/base"
-import CreepRun from "./creepRun"
-import BaseFunction from "./baseFunction"
-import MoveFunction from "./move/moveFuntion"
+import CreepRun from "./run"
+import BaseFunction from "./base/baseFunction"
+import MoveFunction from "./base/moveFuntion"
 
 const plugins = [
     BaseFunction,

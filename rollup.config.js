@@ -9,7 +9,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import alias from '@rollup/plugin-alias';
 import { fileURLToPath } from 'url';
 import typescript from 'rollup-plugin-typescript2';
-import terser from '@rollup/plugin-terser';
+// import terser from '@rollup/plugin-terser';
 
 const isProduction = process.env.DEST === 'main';
 
@@ -57,7 +57,7 @@ export default {
     output: {
         file: 'dist/main.js',
         format: 'cjs',
-        sourcemap: true
+        sourcemap: true,
     },
     plugins: [
         // 清除上次编译成果
@@ -80,16 +80,6 @@ export default {
                 replacement: path.resolve(__dirname, 'src')
             }]
         }),
-        // 压缩代码
-        isProduction && terser({
-            format: {
-              comments: false,
-              beautify: false,
-              quote_style: 1,
-            },
-            compress: true,
-            mangle: true,
-          }),
         // 执行上传或者复制
         pluginDeploy
     ]

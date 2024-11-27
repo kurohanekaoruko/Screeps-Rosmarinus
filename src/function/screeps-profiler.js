@@ -16,12 +16,15 @@ function setupProfiler() {
   Game.profiler = {
     stream(duration, filter) {
       setupMemory('stream', duration || 10, filter);
+      return `The result will be output after ${duration || 100} ticks`
     },
     email(duration, filter) {
       setupMemory('email', duration || 100, filter);
+      return `The result will be output after ${duration || 100} ticks`
     },
     profile(duration, filter) {
       setupMemory('profile', duration || 100, filter);
+      return `The result will be output after ${duration || 100} ticks`
     },
     background(filter) {
       setupMemory('background', false, filter);

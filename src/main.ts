@@ -1,9 +1,10 @@
-import { createApp } from '@/framework/createApp';
-import { roomRunner, creepRunner, powerRunner } from '@/runner';
-import { CreateGlobalExtension } from '@/prototype';
-
 import '@/modules/betterMove';    // 超级移动优化
 import '@/modules/structureCache';  // 极致建筑缓存
+
+import { createApp } from '@/framework/createApp';
+import { roomRunner, creepRunner, powerRunner } from '@/runner';
+import { PrototypeExtension } from '@/prototype';
+
 import { GlobalInit } from '@/modules/GlobalInit';
 import { MemoryInit } from '@/modules/MemoryInit';
 import { ClearModule, GeneratePixel, Statistics } from '@/function';
@@ -12,7 +13,6 @@ import { DoubleSquad } from '@/modules/actions/DoubleSquad';
 import { Claim } from '@/modules/actions/Claim';
 import { CollectClusters } from '@/modules/actions/CollectClusters';
 import { PowerCollect } from './modules/actions/PowerCollect';
-import { FlagsModule } from '@/modules/FlagsModule';
 
 
 const app = createApp();
@@ -23,9 +23,9 @@ app.set('creep', creepRunner);    // creep行动
 
 app.set('powerCreep', powerRunner); // powerCreep行动
 
-app.mount(CreateGlobalExtension);    // 原型挂载
+app.mount(PrototypeExtension);    // 原型挂载
 
-app.on(GlobalInit);    // 初始化全局变量
+app.on(GlobalInit);    // 全局变量模块
 
 app.on(MemoryInit);    // 初始化内存
 
@@ -36,8 +36,6 @@ app.on(CollectClusters);    // 挖外矿,使用flag触发
 app.on(PowerCollect);   // 采集Power,使用flag触发
 
 app.on(DoubleSquad);        // 双人小队
-
-app.on(FlagsModule); // 使用旗帜触发的功能
 
 app.on(ClearModule);    // 过期数据清理
 
@@ -54,9 +52,4 @@ import profiler from './function/screeps-profiler';
 profiler.enable();
 export const loop = function() {
     profiler.wrap(app.run);
-}
-
-for (const roomName in Memory.MissionPools) {
-    if(roomName === 'E49N19') continue;
-    delete Memory.MissionPools[roomName];
 }

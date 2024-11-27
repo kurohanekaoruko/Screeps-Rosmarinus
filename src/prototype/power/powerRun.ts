@@ -10,27 +10,34 @@ export default class PowerCreepRun extends PowerCreep {
             return;
         }
 
+        // 房间开启power
+        if(this.PowerEnabled()) return;
+        // 生成ops
         if(this.Generate_OPS())  return;
-
+        // 转移ops
+        if(this.transferOPS())  return;
+        // 续命
         if(this.ToRenew()) return;
 
-        if(name.match(/O#(\d+)/)) {
-            PowerCreepAction['O'](this);
-        }
+        const role = name.match(/(\w+)#\d+/)[1];
+
+        PowerCreepAction[role](this);
     }
 }
 
 const PowerCreepAction = {
-    'O': function(pc: PowerCreep) {
-        const shield = Game.flags[`${pc.name}-shield`];
-        if(shield && pc.Shield(shield.pos)) return;
-        
-        if(pc.PowerEnabled()) return;   // 房间开启power
-        if(pc.transferOPS())  return;    // 转移ops
+    'F': function(pc: PowerCreep) {
         if(pc.withdrawOPS())  return;      // 取出ops
         if(pc.Operate_Factory())  return;    // 操作工厂
+    },
+    'O': function(pc: PowerCreep) {
+        // const shield = Game.flags[`${pc.name}-shield`];
+        // if(shield && pc.Shield(shield.pos)) return;
+        
+        if(pc.withdrawOPS())  return;      // 取出ops
         if(pc.Regen_Source())  return;  // 生成能量
         if(pc.Operate_Power())  return;  // 提高Power处理速率
         if(pc.Operate_Extension())  return;  // 填充扩展
-    }
+        if(pc.Operate_Spawn())  return;        // 加速spawn
+    },
 }

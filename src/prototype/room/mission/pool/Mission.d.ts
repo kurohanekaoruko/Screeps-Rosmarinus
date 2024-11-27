@@ -42,6 +42,8 @@ interface Room {
     TransportMissionAdd(level: number, data: TransportTask): OK | void;
     // 添加资源发送任务
     SendMissionAdd(target: string, resourceType: string | ResourceConstant, amount: number): OK | void;
+    // 添加孵化任务
+    SpawnMissionAdd(name: string, body: number[], level: number, role: string, memory: CreepMemory): OK | ERR_NOT_ENOUGH_ENERGY;
 
     // 获取运输任务
     getTransportMission(creep: Creep): Task | null;
@@ -49,13 +51,21 @@ interface Room {
     getBuildMission(creep: Creep): Task | null;
     // 获取维修或刷墙任务
     getRepairMission(creep: Creep): Task | null;
+    // 获取资源发送任务
+    getSendMission();
     // 获取发送任务的总发送数量
     getSendMissionTotalAmount(): {[type: string]: number};
+    // 获取孵化任务
+    getSpawnMission(): Task;
+    // 获取孵化任务的数量
+    getSpawnMissionAmount(): {[type: string]: number};
+    // 根据roles获取孵化任务的总数量
+    getSpawnMissionTotalByRoles(roles: string[]): number;
     
     // 提交运输任务完成信息
     submitTransportMission(id: Task['id'], amount: TransportTask['amount']): void;
-    // 提交维修任务完成信息
-    submitRepairMission(type: Task['type'], id: Task['id'], hits: RepairTask['hits']): void;
+    // 提交孵化任务完成信息
+    submitSpawnMission(id: Task['id']): void;
 
     // 任务更新
     MissionUpdate(): void;
@@ -113,7 +123,7 @@ interface SendTask {
 
 interface SpawnTask {
     name: string,
-    body: BodyPartConstant[],
+    body: number[],
     memory: CreepMemory,
     energy: number,
 }

@@ -22,19 +22,9 @@ const claimRoom = function(roomName) {
         return; // 如果没有找到合适的房间，返回
     }
 
-    // 尝试从最近的房间中找到一个有空闲 spawn 的房间生成 claimer
-    let spawns = nearestRoom.spawn;
+    if (global.SpawnMissionNum[nearestRoom.name]['claimer'] > 0) return;
 
-    for (let spawn of spawns) {
-        let newName = 'Claimer_' + Game.time;
-        let body = [MOVE, MOVE, CLAIM];
-
-        // 生成 claimer 并设置目标房间
-        let result = spawn.spawnCreep(body, newName, { memory: { role: 'claimer', target: roomName } });
-        if (result == OK) {
-            return;
-        }
-    }
+    nearestRoom.SpawnMissionAdd('CL', [], 0, 'claimer', { home: roomName, target: roomName });
 }
 
 const createSpawn = function(flag, roomName) {
@@ -82,11 +72,12 @@ const createSpawn = function(flag, roomName) {
         return; // 如果没有找到合适的房间，返回
     }
 
-    if(builders.length + global.QueueCreepNum['builder'] >= 4) {return;}
+    if(builders.length + (global.SpawnMissionNum[roomName]?.['builder'] || 0) >= 4) {return;}
 
-    nearestRoom.SpawnQueueAdd('B', [], { role: 'builder', home: roomName, target: roomName });
-    nearestRoom.SpawnQueueAdd('B', [], { role: 'builder', home: roomName, target: roomName });
-    nearestRoom.SpawnQueueAdd('B', [], { role: 'builder', home: roomName, target: roomName });
+
+    nearestRoom.SpawnMissionAdd('B', [],10, 'builder', { home: roomName, target: roomName });
+    nearestRoom.SpawnMissionAdd('B', [],10, 'builder', { home: roomName, target: roomName });
+    nearestRoom.SpawnMissionAdd('B', [],10, 'builder', { home: roomName, target: roomName });
 }
 
 

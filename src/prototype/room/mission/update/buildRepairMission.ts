@@ -46,26 +46,33 @@ function UpdateBuildRepairMission(room: Room) {
     const constructionSites = room.find(FIND_CONSTRUCTION_SITES);
     for(const site of constructionSites) {
         const posInfo = `${site.pos.x}/${site.pos.y}/${site.pos.roomName}`
-        const level = Math.floor((1 - site.progress / site.progressTotal) * 4);
         const data = {target: site.id, pos: posInfo};
+        if(site.structureType === STRUCTURE_STORAGE || site.structureType === STRUCTURE_TERMINAL) {
+            room.BuildRepairMissionAdd('build', 0, data)
+            return;
+        }
+        const level = Math.floor((1 - site.progress / site.progressTotal) * 5);
         room.BuildRepairMissionAdd('build', level, data)
     }
 }
 
 // 刷墙任务
 function UpdateWallRepairMission(room: Room) {
-    const WALL_HITS_MAX_THRESHOLD = 1;        // 墙最大耐久度阈值
-    // 查找所有受损的结构
+    const WALL_HITS_MAX_THRESHOLD = 0.5;        // 墙最大耐久度阈值
+    const memory = global.BotMem('layout', room.name);
+    const rampartMem = memory['rampart'] || [];
+    const wallMem = memory['wall'] || [];
     const walls = room.find(FIND_STRUCTURES, {
         filter: (structure) => structure.hits < structure.hitsMax &&
-        (structure.structureType === STRUCTURE_WALL || structure.structureType === STRUCTURE_RAMPART)
+        (structure.structureType === STRUCTURE_WALL || structure.structureType === STRUCTURE_RAMPART) &&
+        (rampartMem.includes(structure.pos.x*100+structure.pos.y) || wallMem.includes(structure.pos.x*100+structure.pos.y))
     });
     for(const structure of walls) {
         const { hitsMax, hits, id, pos } = structure;
         const posInfo = `${pos.x}/${pos.y}/${pos.roomName}`
         if(hits < hitsMax * WALL_HITS_MAX_THRESHOLD * 0.9) {  // 刷墙
             const level = Math.floor(hits / hitsMax * 100) + 1; // 优先级
-            const targetHits = level / 100 * hitsMax * WALL_HITS_MAX_THRESHOLD;
+            const targetHits = level / 100 * hitsMax;
             const data = {target: id, pos: posInfo, hits: targetHits};
             room.BuildRepairMissionAdd('walls', level, data);
             continue;
@@ -73,4 +80,20 @@ function UpdateWallRepairMission(room: Room) {
     }
 }
 
-export { UpdateBuildRepairMission, UpdateWallRepairMission }
+// 检查任务是否有效
+function BuildRepairMissionCheck(room: Room) {
+    const checkFunc = (task: Task) => {
+        const {target, hits} = task.data;
+        const structure = Game.getObjectById(target) as Structure | null;
+        if(!structure) return false;
+        if ((task.type === 'repair' || task.type === 'walls') &&
+            structure.hits >= hits) return false;
+        return true;
+    }
+
+    room.checkMissionPool('build', checkFunc);
+    room.checkMissionPool('repair', checkFunc);
+    room.checkMissionPool('walls', checkFunc);
+}
+
+export { UpdateBuildRepairMission, UpdateWallRepairMission, BuildRepairMissionCheck }

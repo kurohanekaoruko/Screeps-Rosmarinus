@@ -6,10 +6,10 @@ export default class AutoMarket extends Room {
         if(!autoMaket) return;
         for(const item of autoMaket) {
             if(item.orderType == 'buy') {
-                AutoBuy(this.name, item.amount, item.type);
+                AutoBuy(this.name, item);
             }
             else if(item.orderType == 'sell') {
-                AutoSell(this.name, item.amount, item.type);
+                AutoSell(this.name, item);
             }
             else if(item.orderType == 'dealbuy') {
                 
@@ -22,7 +22,8 @@ export default class AutoMarket extends Room {
 }
 
 
-function AutoBuy(roomName: string, amount: number, type: string) {
+function AutoBuy(roomName: string, item: any) {
+    const amount = item.amount, type = item.type;
     const room = Game.rooms[roomName];
     const resourceType = global.BaseConfig.RESOURCE_ABBREVIATIONS[type] || type;
 
@@ -30,8 +31,10 @@ function AutoBuy(roomName: string, amount: number, type: string) {
     const terminal = room.terminal;
     if (!terminal) return;
 
-    const terminalAmount = terminal.store[resourceType] || 0;
-    const storageAmount = room.storage ? (room.storage.store[resourceType] || 0) : 0;
+    const terminalAmount = !item.store || item.store == 'terminal' ?
+                            (terminal.store[resourceType] || 0) : 0;
+    const storageAmount = room.storage && (!item.store || item.store == 'storage') ?
+                            (room.storage.store[resourceType] || 0) : 0;
     const totalAmount = terminalAmount + storageAmount;
     
     if (totalAmount >= amount) return;
@@ -41,19 +44,33 @@ function AutoBuy(roomName: string, amount: number, type: string) {
     if(totalBuyAmount <= 0) return;
 
     // 根据资源类型确定单次订单数量
-    const orderAmount = resourceType === RESOURCE_ENERGY ? 10000 : 3000;    // 单次订单量
-    if(totalBuyAmount < orderAmount) return;    // 如果需要购买的资源量小于单次订单数量，则不创建订单
+    const orderAmount = (() => {
+        if (resourceType !== RESOURCE_ENERGY) return 3000;
+        if (global.BotMem('rooms', roomName, 'spup')) return 30000;
+        return 10000;
+    })()    // 单次订单量   
 
     // 检查是否已有同类型订单未完成
     const existingOrders = Game.market.orders;
-    const hasExistingOrder = Object.values(existingOrders).some(order => 
-        order.roomName === room.name && 
-        order.resourceType === resourceType && 
-        order.type === ORDER_BUY &&
-        order.remainingAmount > 0
-    );
+    let existingOrder = null;
+    for (const order of Object.values(existingOrders)) {
+        if (order.roomName === room.name && 
+            order.resourceType === resourceType && 
+            order.type === ORDER_BUY &&
+            order.remainingAmount > 0
+        ) {
+            existingOrder = order;
+            break;
+        }
+    }
 
-    if (hasExistingOrder) return
+    if (existingOrder) {
+        const price = global.order.getPrice(existingOrder.resourceType, ORDER_BUY);
+        if(price > existingOrder.price || price < existingOrder.price * 0.8) {
+            Game.market.changeOrderPrice(existingOrder.id, price);
+            return OK;
+        }
+    }
 
     // 创建订单
     const result = global.order.buy({
@@ -66,7 +83,8 @@ function AutoBuy(roomName: string, amount: number, type: string) {
     return result;
 }
 
-function AutoSell(roomName: string, amount: number, type: string) {
+function AutoSell(roomName: string, item: any) {
+    const amount = item.amount, type = item.type;
     const room = Game.rooms[roomName];
     const resourceType = global.BaseConfig.RESOURCE_ABBREVIATIONS[type] || type;
 
@@ -74,8 +92,10 @@ function AutoSell(roomName: string, amount: number, type: string) {
     const terminal = room.terminal;
     if (!terminal) return;
 
-    const terminalAmount = terminal.store[resourceType] || 0;
-    const storageAmount = room.storage ? (room.storage.store[resourceType] || 0) : 0;
+    const terminalAmount = !item.store || item.store == 'terminal' ?
+                            (terminal.store[resourceType] || 0) : 0;
+    const storageAmount = room.storage && (!item.store || item.store == 'storage') ?
+                            (room.storage.store[resourceType] || 0) : 0;
     const totalAmount = terminalAmount + storageAmount;
     
     if (totalAmount < amount) return;
@@ -90,14 +110,25 @@ function AutoSell(roomName: string, amount: number, type: string) {
 
     // 检查是否已有同类型订单未完成
     const existingOrders = Game.market.orders;
-    const hasExistingOrder = Object.values(existingOrders).some(order => 
-        order.roomName === room.name && 
-        order.resourceType === resourceType && 
-        order.type === ORDER_SELL &&
-        order.remainingAmount > 0
-    );
+    let existingOrder = null;
+    for (const order of Object.values(existingOrders)) {
+        if (order.roomName === room.name && 
+            order.resourceType === resourceType && 
+            order.type === ORDER_SELL &&
+            order.remainingAmount > 0
+        ) {
+            existingOrder = order;
+            break;
+        }
+    };
 
-    if (hasExistingOrder) return;
+    if (existingOrder) {
+        const price = global.order.getPrice(existingOrder.resourceType, ORDER_SELL);
+        if(price > existingOrder.price || price < existingOrder.price * 0.8) {
+            Game.market.changeOrderPrice(existingOrder.id, price);
+        }
+        return OK;
+    }
 
     // 创建订单
     const result = global.order.sell({

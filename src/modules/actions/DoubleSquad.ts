@@ -53,13 +53,13 @@ function doubleAttack_spawn(match: RegExpMatchArray, flagName: string, flags: an
     const doubleHeal = Object.values(Game.creeps).filter((creep) => creep.memory.role == 'double-heal' && creep.memory.targetRoom == targetName && creep.memory.squad == 'attack');
 
     const room = Game.rooms[sourceName]
-    const queuenum = global.QueueCreepNum[sourceName]
+    const queuenum = global.SpawnMissionNum[sourceName];
 
-    if(doubleAttack.length + (queuenum['double-attack']||0) < ATTACK_NUM) {
-        room.SpawnQueueAdd('', [], {role: 'double-attack', squad: 'attack', targetRoom: targetName})
+    if(doubleAttack.length + (queuenum?.['double-attack']||0) < ATTACK_NUM) {
+        room.SpawnMissionAdd('', [], -1, 'double-attack', {squad: 'attack', targetRoom: targetName} as any)
     }
-    if(doubleHeal.length + (queuenum['double-heal']||0) < ATTACK_NUM) {
-        room.SpawnQueueAdd('', [], {role: 'double-heal', squad: 'attack', targetRoom: targetName})
+    if(doubleHeal.length + (queuenum?.['double-heal']||0) < ATTACK_NUM) {
+        room.SpawnMissionAdd('', [], -1, 'double-heal', {squad: 'attack', targetRoom: targetName} as any)
     }
 }
 
@@ -73,13 +73,13 @@ function doubleDismantle_spawn(match: RegExpMatchArray, flagName: string, flags:
     const doubleHeal = Object.values(Game.creeps).filter((creep) => creep.memory.role == 'double-heal' && creep.memory.targetRoom == targetName && creep.memory.squad == 'dismantle');
 
     const room = Game.rooms[sourceName]
-    const queuenum = global.QueueCreepNum[sourceName]
+    const queuenum = global.SpawnMissionNum[sourceName];
 
-    if(doubleDismantle.length + (queuenum['double-dismantle']||0) < DISMANTLE_NUM) {
-        room.SpawnQueueAdd('', [], {role: 'double-dismantle', squad: 'dismantle', targetRoom: targetName})
+    if(doubleDismantle.length + (queuenum?.['double-dismantle']||0) < DISMANTLE_NUM) {
+        room.SpawnMissionAdd('', [], -1, 'double-dismantle', {squad: 'dismantle', targetRoom: targetName} as any)
     }
-    if(doubleHeal.length + (queuenum['double-heal']||0) < DISMANTLE_NUM) {
-        room.SpawnQueueAdd('', [], {role: 'double-heal', squad: 'dismantle', targetRoom: targetName})
+    if(doubleHeal.length + (queuenum?.['double-heal']||0) < DISMANTLE_NUM) {
+        room.SpawnMissionAdd('', [], -1, 'double-heal', {squad: 'dismantle', targetRoom: targetName} as any)
     }
 }
 
@@ -93,13 +93,13 @@ function doubleCarry_spawn(match: RegExpMatchArray, flagName: string, flags: any
     const doubleHeal = Object.values(Game.creeps).filter((creep) => creep.memory.role == 'double-heal' && creep.memory.targetRoom == targetName && creep.memory.squad == 'carry');
 
     const room = Game.rooms[sourceName]
-    const queuenum = global.QueueCreepNum[sourceName]
+    const queuenum = global.SpawnMissionNum[sourceName];
 
-    if(doubleCarry.length + (queuenum['double-carry']||0) < CARRY_NUM) {
-        room.SpawnQueueAdd('', [], {role: 'double-carry', squad: 'carry', targetRoom: targetName})
+    if(doubleCarry.length + (queuenum?.['double-carry']||0) < CARRY_NUM) {
+        room.SpawnMissionAdd('', [], -1, 'double-carry', {squad: 'carry', targetRoom: targetName} as any)
     }
-    if(doubleHeal.length + (queuenum['double-heal']||0) < CARRY_NUM) {
-        room.SpawnQueueAdd('', [], {role: 'double-heal', squad: 'carry', targetRoom: targetName})
+    if(doubleHeal.length + (queuenum?.['double-heal']||0) < CARRY_NUM) {
+        room.SpawnMissionAdd('', [], -1, 'double-heal', {squad: 'carry', targetRoom: targetName} as any)
     }
 }
 
@@ -113,12 +113,12 @@ function doubleTough_spawn(match: RegExpMatchArray, flagName: string, flags: any
     const doubleHeal = Object.values(Game.creeps).filter((creep) => creep.memory.role == 'double-heal' && creep.memory.targetRoom == targetName && creep.memory.squad == 'tough');
 
     const room = Game.rooms[sourceName]
-    const queuenum = global.QueueCreepNum[sourceName]
+    const queuenum = global.SpawnMissionNum?.[sourceName];
 
     if(doubleTough.length + (queuenum['double-tough']||0) < TOUGH_NUM) {
-        room.SpawnQueueAdd('', [], {role: 'double-tough', squad: 'tough', targetRoom: targetName})
+        room.SpawnMissionAdd('', [], -1, 'double-tough', {squad: 'tough', targetRoom: targetName} as any)
     }
     if(doubleHeal.length + (queuenum['double-heal']||0) < TOUGH_NUM) {
-        room.SpawnQueueAdd('', [], {role: 'double-heal', squad: 'tough', targetRoom: targetName})
+        room.SpawnMissionAdd('', [], -1, 'double-heal', {squad: 'tough', targetRoom: targetName} as any)
     }
 }

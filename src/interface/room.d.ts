@@ -19,12 +19,18 @@ interface Room {
     lab: StructureLab[];
     /** 房间中的link数组 */
     link: StructureLink[];
-    /** 房间中的container对象 */
+    /** 房间中的container数组 */
     container: StructureContainer[];
     /** 房间中的extractor对象 */
     extractor: StructureExtractor;
+    /** 房间中的observer对象 */
+    observer: StructureObserver;
     /** 得到包括此房间所有（按此顺序：）storage、terminal、factory、container的数组 */
     mass_stores: (StructureStorage | StructureTerminal | StructureFactory | StructureContainer)[];
+    /** 房间中的powerBank数组 */
+    powerBank: StructurePowerBank[];
+    /** 房间中的deposit数组 */
+    deposit: StructureDeposit[];
     /** 房间等级 */
     level: number;
     /** 房间是否为自己所有 */
@@ -43,14 +49,14 @@ interface Room {
     SpawnCreeps(): void;
     // 停机检查
     ShutdownInspection(): void;
-    // 添加孵化任务到队列
-    SpawnQueueAdd(name: string, bodys: number[], memory: any): void;
     // 计算孵化所需能量
     CalculateEnergy(abilityList: any[]): number;
     // 计算角色孵化所需能量
     CalculateRoleEnergy(role: string): number;
+    // 主动防御
+    activeDefend(): void;
     // 全部建筑工作
-    allStructureWork(): void;
+    StructureWork(): void;
     // 计算中心点
     CacheCenterPos(): void;
     // 计算房间内所有结构体能量
@@ -58,7 +64,7 @@ interface Room {
     // 返回一个等级, 取决于spawn总容量
     getEffectiveRoomLevel(): number;
     // 生成creep body
-    GenerateBodys(abilityList: any[]): any[];
+    GenerateBodys(abilityList: any[], role?: string): any[];
     // 获取房间内最近的source
     closestSource(creep: Creep): Source;
     // 自动按照预设布局建造
@@ -67,6 +73,8 @@ interface Room {
     autoMarket(): void;
     // 自动工厂生产
     autoFactory(): void;
+    // 外矿采集模块
+    outMine(): void;
 }
 
 interface RoomMemory {
@@ -100,7 +108,7 @@ interface RoomMemory {
     powerSpawn: boolean;
 
     /** 防御模式 */
-    defender: boolean;
+    defend: boolean;
     /** factory等级 */
     factoryLevel: number;
     /** 工厂生产类型 */

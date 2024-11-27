@@ -143,7 +143,7 @@ function UpdateLabMission(room: Room) {
     const storage = room.storage;
     if (!storage) return;
     const BotMemStructures =  global.BotMem('structures', room.name);
-    if (!BotMemStructures.lab || room.memory.defender) return;    // lab关停时不进行操作
+    if (!BotMemStructures.lab || room.memory.defend) return;    // lab关停时不进行操作
     if (!BotMemStructures.labA || !BotMemStructures.labB ||
         !BotMemStructures.labAtype || !BotMemStructures.labBtype) return;
     const labA = Game.getObjectById(BotMemStructures.labA) as StructureLab;
@@ -227,15 +227,14 @@ function UpdateLabBoostMission(room: Room) {
     if (!storage && !terminal) return;
     
     const BotMemStructures =  global.BotMem('structures', room.name);
-    if (BotMemStructures.lab && !room.memory.defender) return;
-    if (!room.memory.labsBoostType) return;
+    if (BotMemStructures.lab && !room.memory.defend) return;
+    if (!BotMemStructures['boostTypes']) return;
 
     if (!room.lab || room.lab.length === 0) return;
 
     const Labs = room.lab.filter(lab => lab);
     Labs.forEach(lab => {
-        const boostType = room.memory.labsBoostType[lab.id];
-        if(!boostType) return;
+        const boostType = BotMemStructures['boostTypes'][lab.id];
 
         // 如果lab中存在非设定的资源，则搬走
         if(lab.mineralType !== boostType && lab.store[lab.mineralType] > 0) {
@@ -251,7 +250,7 @@ function UpdateLabBoostMission(room: Room) {
             return;
         }
         
-        if(!RESOURCES_ALL.includes(boostType)) return;
+        if(!boostType || !RESOURCES_ALL.includes(boostType)) return;
 
         // 如果设定的资源不足，则补充
         if(lab.store.getUsedCapacity(boostType) < 2500) {
