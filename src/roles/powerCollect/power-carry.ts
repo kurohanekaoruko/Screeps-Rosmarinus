@@ -1,7 +1,17 @@
 const power_carry = {
     source: function(creep: Creep) {
+        let powerTombstone = creep.room.find(FIND_TOMBSTONES,{filter: (r) => r.store.getUsedCapacity(RESOURCE_POWER) > 0})[0];
+        if (powerTombstone) {
+            creep.memory['powerTombstoneId'] = powerTombstone.id;
+            creep.withdrawOrMoveTo(powerTombstone, RESOURCE_POWER);
+            return false;
+        }
+        if(creep.store.getFreeCapacity(RESOURCE_POWER) === 0) {
+            return true;
+        }
+        
         if (creep.room.name != creep.memory.targetRoom || creep.pos.isRoomEdge()) {
-            creep.moveToRoom(creep.memory.targetRoom);
+            creep.moveToRoom(creep.memory.targetRoom, {bypassRange:10});
             return;
         }
 

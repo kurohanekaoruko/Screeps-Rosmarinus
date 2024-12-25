@@ -3,7 +3,12 @@ import { RoleData, RoleLevelData } from '@/constant/CreepConstant'
 // 检查主要角色是否需要孵化
 function RoleSpawnCheck(room: Room, role: string, currentNum: number, num: number) {
     const lv = room.level;
+    // 冲级设置
     const spup = Memory['RoomControlData'][room.name].spup;
+    // 加速刷墙
+    const spre = Memory['RoomControlData'][room.name].spre;
+    // 常驻升级
+    const mustUpgrade = Memory['RoomControlData'][room.name].mustUpgrade;
     switch (role) {
         case 'harvester':
             if(room.memory.defend) return false;
@@ -11,7 +16,9 @@ function RoleSpawnCheck(room: Room, role: string, currentNum: number, num: numbe
         case 'upgrader':
             if(room.memory.defend) return false;
             if(spup) return false;
-            if(lv == 8 && room.controller.ticksToDowngrade >= 150000) return false;
+            if(global.CreepNum[room.name]['speedup-upgrade']) return false;
+            if (lv == 8 && !mustUpgrade &&
+                room.controller.ticksToDowngrade >= 150000) return false;
             return currentNum < num;
         case 'transport':
             if (room.AllEnergy() < 1000) return false;
@@ -33,8 +40,8 @@ function RoleSpawnCheck(room: Room, role: string, currentNum: number, num: numbe
             else return currentNum < 1;
         case 'repair':
             return currentNum < 1 && 
-                (room.getMissionNumInPool('repair') > 20 || 
-                (room.checkMissionInPool('walls') && room.AllEnergy() > 50000));
+                ((room.getMissionNumInPool('repair') > 20 || room.checkMissionInPool('walls'))
+                && room.AllEnergy() > 50000);
         case 'miner':
             if(room.memory.defend) return false;
             return currentNum < 1 && lv >= 6 &&
@@ -42,7 +49,7 @@ function RoleSpawnCheck(room: Room, role: string, currentNum: number, num: numbe
                     room.mineral.mineralAmount > 0;
         case 'har-car':
             return currentNum < 2 && lv < 3 && (!room.container || room.container.length < 1);
-        case 'speedup-upgrad':
+        case 'speedup-upgrade':
             if (!spup) return false;
             if (room.level == 8) {
                 Memory['RoomControlData'][room.name].spup = 0;
@@ -52,7 +59,6 @@ function RoleSpawnCheck(room: Room, role: string, currentNum: number, num: numbe
             if (room.AllEnergy() < 10000) return false;
             return (currentNum < spup);
         case 'speedup-repair':
-            const spre = Memory['RoomControlData'][room.name].spre;
             if (!spre) return false;
             if (room.level < 7)  return false;
             if (room.storage?.store[RESOURCE_ENERGY] < 10000) return false;
@@ -70,7 +76,9 @@ function UpdateSpawnMission(room: Room) {
     const roomName = room.name;
     for (const role in RoleData) {
         const currentNum =  (global.SpawnMissionNum[roomName][role] || 0) + (global.CreepNum[roomName][role] || 0);
-        const num = RoleData[role]['adaption'] ? RoleLevelData[role][lv]['num'] : RoleData[role]['num'];
+        const num = RoleLevelData[role] ?
+                    RoleLevelData[role][lv]['num'] :
+                    RoleData[role]['num'];
         if (RoleSpawnCheck(room, role, currentNum, num)) {
             room.SpawnMissionAdd(
                 RoleData[role].code,

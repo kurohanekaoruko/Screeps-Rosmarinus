@@ -25,7 +25,7 @@ export default {
             return OK;
         },
         // 孵化powerCreep
-        pc(roomName: string, pcname: string) {
+        pc(pcname: string, roomName: string) {
             const room = Game.rooms[roomName];
             if (!room || !room.my) {
                 console.log(`房间 ${roomName} 不存在、未拥有或未添加。`);
@@ -46,8 +46,12 @@ export default {
             return OK;
         },
         setpc(pcname: string, roomName: string) {
-            if(!Memory['powerCreeps'][pcname]) Memory['powerCreeps'][pcname] = {};
-            Memory['powerCreeps'][pcname]['spawnRoom'] = roomName;
+            const pc = Game.powerCreeps[pcname];
+            if (!pc) {
+                console.log(`PowerCreep 【${pcname}】 不存在。`);
+                return -1;
+            }
+            pc.memory['spawnRoom'] = roomName;
             console.log(`已设置 PowerCreep 【${pcname}】 的孵化房间为 ${roomName}`);
             return OK;
         }

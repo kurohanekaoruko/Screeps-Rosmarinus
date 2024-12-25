@@ -25,7 +25,7 @@ export default {
             return OK;
         },
         // 设置factory生产
-        set(roomName: string, res: string) {
+        set(roomName: string, res: string, amount: number = 0) {
             const RES = global.BaseConfig.RESOURCE_ABBREVIATIONS;
             const room = Game.rooms[roomName];
             const BotMemStructures =  Memory['StructControlData'];
@@ -41,7 +41,7 @@ export default {
                 return Error(`生产目标 ${res} 需要factory等级为 ${COMMODITIES[res].level}, 而factory等级不匹配或未设置等级。`);
             }
             BotMemStructures[roomName]['factoryProduct'] = res;
-            BotMemStructures[roomName]['factoryAmount'] = 0;
+            BotMemStructures[roomName]['factoryAmount'] = Math.max(0, amount);
             global.log(`[${roomName}] 已设置factory生产任务为 ${res}。`);
             if (!BotMemStructures[roomName]['factory']) {
                 BotMemStructures[roomName]['factory'] = true;
@@ -117,7 +117,10 @@ export default {
                         global.log(`[${roomName}]没有开启自动factory生产`);
                     }
                     else {
-                        global.log(`[${roomName}]自动factory生产：${autoFactory}`);
+                        global.log(`[${roomName}]自动factory生产:`);
+                        for(const res in autoFactory) {
+                            console.log(`   ${res} - ${autoFactory[res]}`);
+                        }
                     }
                     return OK;
                 }
@@ -129,7 +132,10 @@ export default {
                     if(!BotMemAutoFactory[room] || BotMemAutoFactory[room].length == 0) {
                         continue;
                     }
-                    global.log(`[${room}]自动factory生产：${BotMemAutoFactory[room]}`);
+                    global.log(`[${room}]自动factory生产:`);
+                    for(const res in BotMemAutoFactory[room]) {
+                        console.log(`   ${res} - ${BotMemAutoFactory[room][res]}`);
+                    }
                 }
                 return OK;
             },

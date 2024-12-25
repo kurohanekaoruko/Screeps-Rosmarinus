@@ -2,11 +2,11 @@
  * 任务获取模块
  */
 export default class MissionGet extends Room {
+    // 获取运输任务
     getTransportMission(creep: Creep) {
         if(!this.checkMissionInPool('transport')) return null;
 
         const posInfo = `${creep.pos.x}/${creep.pos.y}/${creep.pos.roomName}`
-
         const task = this.getMissionFromPool('transport', posInfo);
         if(!task) return null;
 
@@ -14,6 +14,7 @@ export default class MissionGet extends Room {
         const target = Game.getObjectById(task.data.target) as any;
         const resourceType = task.data.resourceType;
         const amount = task.data.amount;
+        // 任务无效则删除, 重新获取
         if(!source || !target || !resourceType || !amount ||
             source.store[resourceType] == 0 ||
             target.store.getFreeCapacity(resourceType) == 0) {
@@ -21,7 +22,7 @@ export default class MissionGet extends Room {
             return this.getTransportMission(creep);
         }
 
-        this.lockMissionInPool('transport',task.id, creep.id);
+        this.lockMissionInPool('transport', task.id, creep.id);
 
         return task;
     }
@@ -65,7 +66,7 @@ export default class MissionGet extends Room {
         const checkFunc = (task: Task) => {
             const data = task.data as SendTask;
             const resourceType = data.resourceType;
-            return terminal.store[resourceType] >= Math.min(data.amount, 10000);
+            return terminal.store[resourceType] >= Math.min(data.amount, 1000);
         }
         const task = this.getMissionFromPoolFirst('send', checkFunc);
         if(!task) return null;

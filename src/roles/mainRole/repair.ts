@@ -75,6 +75,7 @@ const UnitRepair = {
             return true;
         } else {
             RepairWork(creep);
+            creep.memory.dontPullMe = false;
             return false;
         }
     },

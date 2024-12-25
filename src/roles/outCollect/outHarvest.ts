@@ -134,14 +134,14 @@ const outHarvest = {
         }
 
         let targetSource = Game.getObjectById(creep.memory.targetSourceId) as Source;
-        if(!targetSource) return;
+        if(!targetSource || targetSource.energy == 0) return;
         // 如果离采集点过远，则移动过去
-        if (creep.pos.inRangeTo(targetSource, 1)) {
+        if (creep.pos.isNear(targetSource.pos)) {
             creep.harvest(targetSource);
         }
         else {
             if(targetSource.pos.findInRange(FIND_HOSTILE_CREEPS, 3).length > 0) return;
-            creep.moveTo(targetSource);
+            creep.moveTo(targetSource, {range: 1, maxRooms: 1});
         }
 
         return creep.store.getFreeCapacity() == 0;

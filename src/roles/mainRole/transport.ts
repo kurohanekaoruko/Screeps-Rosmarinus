@@ -100,12 +100,15 @@ const Transport = {
                 const result = creep.transfer(targetObj, resourceType,
                     Math.min(amount, creep.store[resourceType], targetObj.store.getFreeCapacity(resourceType)));
                 if(result === OK) {
-                    // 任务完成
+                    // 如果任务完成，提交任务并获取新任务
                     creep.room.submitTransportMission(mission.id, Math.min(amount, creep.store[resourceType]));
-                    delete creep.memory.mission;
-                    // 如果任务完成，立刻获取新任务
                     creep.memory.mission = creep.room.getTransportMission(creep);
-                    // 下一tick拥有的该资源量
+                    const nextTickResAmount = (creep.store[resourceType] - amount) || 0;
+                    if(creep.memory.mission) missionMove(nextTickResAmount, resourceType);
+                } else if(result === ERR_FULL || result === ERR_INVALID_TARGET) {
+                    // 删除任务并获取新任务
+                    creep.room.deleteMissionFromPool('transport', mission.id);
+                    creep.memory.mission = creep.room.getTransportMission(creep);
                     const nextTickResAmount = (creep.store[resourceType] - amount) || 0;
                     if(creep.memory.mission) missionMove(nextTickResAmount, resourceType);
                 }

@@ -57,6 +57,22 @@ interface Room {
     activeDefend(): void;
     // 全部建筑工作
     StructureWork(): void;
+
+    // 呼叫全体tower对目标发起攻击
+    CallTowerAttack(target: any): void;
+    // 计算全部Tower对某个creep可能造成的实际伤害
+    TowerDamageToCreep(creep: Creep): number;
+    // 治疗房间内的己方单位
+    TowerHealCreep(): boolean;
+    // Tower攻击敌人
+    TowerAttackEnemy(): boolean;
+    // Tower攻击NPC
+    TowerAttackNPC(): boolean;
+    // Tower自动修复被攻击的建筑物
+    TowerAutoRepair(): boolean;
+    // Tower根据任务修复建筑
+    TowerTaskRepair(): boolean;
+
     // 计算中心点
     CacheCenterPos(): void;
     // 计算房间内所有结构体能量

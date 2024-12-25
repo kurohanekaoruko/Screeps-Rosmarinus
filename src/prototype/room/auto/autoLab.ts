@@ -21,8 +21,8 @@ export default class AutoLab extends Room {
         const LabMineralCheck = labA && labB &&
                                 labA.mineralType === botmem.labAtype &&
                                 labB.mineralType === botmem.labBtype &&
-                                labA.store[botmem.labAtype] >= 0 &&
-                                labB.store[botmem.labBtype] >= 0;
+                                labA.store[botmem.labAtype] >= 15 &&
+                                labB.store[botmem.labBtype] >= 15;
         // 没有限额，原料充足，则不变更任务
         if (amount <= 0 && botmem.labAtype && botmem.labBtype &&
             (ResAmountCheck || LabMineralCheck)
@@ -34,14 +34,11 @@ export default class AutoLab extends Room {
             (ResAmountCheck || LabMineralCheck)
         ) return;
 
-        // 对于有设置限额的, 则在关闭时清空任务
-        // 对于没有设置限额的, 则把任务信息保留到有足够原料
-        if (amount > 0 && labProduct) {
+        if (labProduct) {
             botmem.labAtype = '';
             botmem.labBtype = '';
             botmem.labAmount = 0;
         }
-        // 如果没有限额, 并且找不到新任务, 那么任务会暂时保留
 
         // 获取自动任务列表
         const autoLabMap = Memory['AutoData']['AutoLabData'][this.name];

@@ -8,7 +8,7 @@
     "rootDir": "./src", // 根目录
     "baseUrl": ".", // 基础目录，用于解析非相对模块名称
     "paths": { // 路径映射
-      "@/*": ["src/*"] // 将 @ 符号映射到 src 目录
+      "@/*": ["./src/*"] // 将 @ 符号映射到 src 目录
     },
     "esModuleInterop": true, // 启用 ECMAScript 模块的互操作性
     "strict": false, // 启用所有严格类型检查选项

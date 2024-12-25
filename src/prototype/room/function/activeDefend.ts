@@ -3,7 +3,6 @@ export default class ActiveDefend extends Room {
         // 关于主动防御的检查
         if (Game.time % 5) return;
         const defend_mode = Memory['RoomControlData'][this.name]['defend_mode']
-        if (!defend_mode && this.level < 8) return;
         if (this.level < 7) return;
         if (!Memory['whitelist']) Memory['whitelist'] = [];
         let hostiles = this.find(FIND_HOSTILE_CREEPS, {
@@ -13,7 +12,8 @@ export default class ActiveDefend extends Room {
                 hostile.owner.username != 'Invader' &&
                 (hostile.getActiveBodyparts(ATTACK) > 0 || 
                 hostile.getActiveBodyparts(RANGED_ATTACK) > 0 ||
-                hostile.getActiveBodyparts(HEAL) > 0)
+                hostile.getActiveBodyparts(HEAL) > 0 ||
+                hostile.getActiveBodyparts(WORK) > 0)
         }) as any;
         let power_hostiles = this.find(FIND_HOSTILE_POWER_CREEPS,{
             filter: hostile => !Memory['whitelist'].includes(hostile.owner.username)
@@ -24,29 +24,46 @@ export default class ActiveDefend extends Room {
             if(!global.Hostiles) global.Hostiles = {};
             global.Hostiles[this.name] = hostiles.map((hostile: Creep) => hostile.id);
             this.memory.defend = true;    // 进入防御状态
-            // 防御模式0: 双人小队
+            // 防御模式0: 40A红球
             if (!defend_mode || defend_mode == 0) {
-                const doubleDefender = Object.values(Game.creeps)
-                        .filter((creep) => creep.memory.role == 'defend-2Attack' && creep.memory.targetRoom == this.name);
-                const doubleHeal = Object.values(Game.creeps)
-                        .filter((creep) => creep.memory.role == 'defend-2Heal' && creep.memory.targetRoom == this.name);
-                const queuenum = global.SpawnMissionNum[this.name]
-                if(doubleDefender.length + (queuenum?.['defend-2Attack']||0) < 1) {
-                    this.SpawnMissionAdd('', [], -1, 'defend-2Attack', {squad: 'defender', targetRoom: this.name} as any)
+                const attackDefender = Object.values(Game.creeps)
+                    .filter(creep => creep.room.name == this.name &&
+                        creep.memory.role == 'defend-attack') as any;
+                const rangedDefender = Object.values(Game.creeps)
+                    .filter(creep => creep.room.name == this.name &&
+                        creep.memory.role == 'defend-ranged') as any;
+                global.SpawnMissionNum[this.name] = this.getSpawnMissionAmount() || {};
+                let attackQueueNum = global.SpawnMissionNum[this.name]['defend-attack'] || 0;
+                let rangedQueueNum = global.SpawnMissionNum[this.name]['defend-ranged'] || 0;
+                if (hostiles.some((c: Creep) => c.body.some(part => part.type == ATTACK) ||
+                    hostiles.some((c: Creep) => c.body.some(part => part.type == WORK))) &&
+                    (attackDefender.length + attackQueueNum) < 1) {
+                    this.SpawnMissionAdd('', [], -1, 'defend-attack', {home: this.name} as any)
+                    this.AssignBoostTask('XUH2O', 1200);
+                    this.AssignBoostTask('XZHO2', 300);
                 }
-                if(doubleHeal.length + (queuenum?.['defend-2Heal']||0) < 1) {
-                    this.SpawnMissionAdd('', [], -1, 'defend-2Heal', {squad: 'defender', targetRoom: this.name} as any)
+                if (hostiles.some((c: Creep) => c.body.some(part => part.type == RANGED_ATTACK)) &&
+                    (rangedDefender.length + rangedQueueNum < 1)) {
+                    this.SpawnMissionAdd('', [], -1, 'defend-ranged', {home: this.name} as any);
+                    // this.AssignBoostTask('XKHO2', 1200);
+                    this.AssignBoostTask('XZHO2', 300);
                 }
             }
-            // 防御模式1: 红球
-            else if (defend_mode == 1) {
-                const attackDefender = this.find(FIND_MY_CREEPS, {
-                    filter: creep => creep.memory.role == 'defend-attack' && creep.memory.targetRoom == this.name
-                }) as any;
-                if(attackDefender.length < 1) {
-                    this.SpawnMissionAdd('', [], -1, 'defend-attack', { targetRoom: this.name } as any)
-                }
-            }
+            // 防御模式1: 双人小队
+            // if (defend_mode == 1) {
+            //     const doubleDefender = Object.values(Game.creeps)
+            //             .filter((creep) => creep.memory.role == 'defend-2Attack' && creep.memory.targetRoom == this.name);
+            //     const doubleHeal = Object.values(Game.creeps)
+            //             .filter((creep) => creep.memory.role == 'defend-2Heal' && creep.memory.targetRoom == this.name);
+            //     global.SpawnMissionNum[this.name] = this.getSpawnMissionAmount() || {};
+            //     const queuenum = global.SpawnMissionNum[this.name];
+            //     if(doubleDefender.length + (queuenum?.['defend-2Attack']||0) < 1) {
+            //         this.SpawnMissionAdd('', [], -1, 'defend-2Attack', {squad: 'defender', targetRoom: this.name} as any)
+            //     }
+            //     if(doubleHeal.length + (queuenum?.['defend-2Heal']||0) < 1) {
+            //         this.SpawnMissionAdd('', [], -1, 'defend-2Heal', {squad: 'defender', targetRoom: this.name} as any)
+            //     }
+            // }
         }
         else {
             if(!global.Hostiles) global.Hostiles = {};

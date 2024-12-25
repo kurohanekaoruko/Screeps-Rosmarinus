@@ -90,6 +90,15 @@ export default {
             }
             return OK;
         },
+        // 开启常驻升级
+        upgrade(roomName: string) {
+            const room = Game.rooms[roomName];
+            if(!room || !room.my) return Error(`房间 ${roomName} 不存在或未拥有。`);
+            const botMem = Memory['RoomControlData'][roomName];
+            botMem['mustUpgrade'] = !botMem['mustUpgrade'];
+            global.log(`已设置 ${roomName} 的常驻升级状态为${botMem['mustUpgrade'] ? '开启' : '关闭'}。`);
+            return OK;
+        },
         // 开启冲级
         spup(roomName: string, num?: number) {
             const room = Game.rooms[roomName];

@@ -11,7 +11,7 @@ export default class MoveFunction extends Creep {
             return OK;
         }
 
-        options['range'] = 10;
+        options['range'] = 5;
         
         if (this.memory.lastTargetPos?.roomName === roomName) {
             const lastTargetPos = this.memory.lastTargetPos;

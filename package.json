@@ -7,8 +7,7 @@
     "build": "rollup -cw",
     "push": "rollup -cw --environment DEST:main",
     "sim": "rollup -cw --environment DEST:sim",
-    "local": "rollup -cw --environment DEST:local",
-    "private": "rollup -cw --environment DEST:private"
+    "local": "rollup -cw --environment DEST:local"
   },
   "keywords": [],
   "author": "",
@@ -36,6 +35,7 @@
   },
   "dependencies": {
     "@rollup/plugin-alias": "^5.1.1",
+    "inquirer": "^12.2.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-screeps": "^1.0.1",
     "shelljs": "^0.8.5",

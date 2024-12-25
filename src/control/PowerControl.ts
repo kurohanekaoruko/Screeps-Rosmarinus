@@ -1,13 +1,13 @@
 /**
  * PowerCreep 工作模块
  */
-export const powerRunner = function (pc: any) {
+export const powerControl = function (pc: any) {
     if (!pc) return;
     if (!pc.ticksToLive) {
         if (Game.time % 20) return;
         const pcMem = pc.memory;
         if (pc.spawnCooldownTime > Date.now()) return;
-        const powerSpawn = Game.rooms[pcMem['spawnRoom']].powerSpawn;
+        const powerSpawn = Game.rooms[pcMem['spawnRoom']]?.powerSpawn;
         if (powerSpawn) {
             const result = pc.spawn(powerSpawn);
             if (result === OK) {

@@ -112,13 +112,13 @@ export default {
             return OK;
         },
         // 立即开始到指定房间开采power
-        power(roomName: string, targetRoom: string, num: number, prCountMax?: number, boostLevel?: number) {
+        power(roomName: string, targetRoom: string, num: number, boostLevel: number=0, prCountMax?: number) {
             if (!roomName || !targetRoom || !num) return -1;
             const room = Game.rooms[roomName];
             if (!room) return;
             if (!room.memory['powerMine']) room.memory['powerMine'] = {};
             if (boostLevel == 1) {
-                const stores = [this.storage, this.terminal, ...this.lab]
+                const stores = [room.storage, room.terminal, ...room.lab]
                 const GO_Amount = stores.reduce((a, b) => a + b.store['GO'], 0);
                 const UH_Amount = stores.reduce((a, b) => a + b.store['UH'], 0);
                 const LO_Amount = stores.reduce((a, b) => a + b.store['LO'], 0);
@@ -133,7 +133,7 @@ export default {
                 boostLevel: boostLevel || 0,     // 强化等级
                 prCountMax: prCountMax || 0,     // ranged孵化上限
             };
-            console.log(`房间 ${roomName} 即将向 ${targetRoom} 派出 ${num} 数量的Power开采队。`);
+            console.log(`房间 ${roomName} 即将向 ${targetRoom} 派出 ${num} 数量的T${boostLevel} Power开采队。`);
             return OK;
         },
         // 立即开始到指定房间开采deposit
@@ -142,7 +142,10 @@ export default {
             const room = Game.rooms[roomName];
             if (!room) return;
             if (!room.memory['depositMine']) room.memory['depositMine'] = {};
-            room.memory['depositMine'][targetRoom] = num;
+            room.memory['depositMine'][targetRoom] = {
+                num: num,                      // creep队伍数
+                active: true,                  // 是否激活
+            }
             console.log(`房间 ${roomName} 即将向 ${targetRoom} 派出 ${num} 数量的Deposit开采队。`);
             return OK;
         },

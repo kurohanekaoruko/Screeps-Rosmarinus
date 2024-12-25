@@ -372,6 +372,48 @@ export default {
                 return OK;
             }
         },
+        ramarea(roomName: string, operate = 1) {
+            const flagA = Game.flags['layout-ramA'];
+            const flagB = Game.flags['layout-ramB'];
+            if (!flagA || !flagB) {
+                console.log('未找到flag');
+                return ERR_INVALID_ARGS;
+            }
+            const room = Game.rooms[roomName];
+            if (!room) return ERR_INVALID_ARGS;
+            const minX = Math.min(flagA.pos.x, flagB.pos.x);
+            const maxX = Math.max(flagA.pos.x, flagB.pos.x);
+            const minY = Math.min(flagA.pos.y, flagB.pos.y);
+            const maxY = Math.max(flagA.pos.y, flagB.pos.y);
+            const rampart = room.lookForAtArea(LOOK_STRUCTURES, minY, minX, maxY, maxX, true)
+                                .filter((s) => s.structure.structureType === STRUCTURE_RAMPART)
+                                .map((s) => compress(s.x, s.y));
+            let rampartcount = 0;
+            if (operate === 1) {
+                const memory = Memory['LayoutData'][roomName];
+                if (!memory.rampart) memory.rampart = [];
+                for (const ramp of rampart) {
+                    if (!memory.rampart.includes(ramp)) {
+                        memory.rampart.push(ramp);
+                        rampartcount++;
+                    }
+                }
+                console.log(`已添加${rampartcount}个rampart到布局memory`);
+            } else {
+                const memory = Memory['LayoutData'][roomName];
+                if (!memory.rampart) memory.rampart = [];
+                for (const ramp of rampart) {
+                    if (memory.rampart.includes(ramp)) {
+                        memory.rampart.splice(memory.rampart.indexOf(ramp), 1);
+                        rampartcount++;
+                    }
+                }
+                console.log(`已从布局memory删除${rampartcount}个rampart`);
+            }
+            flagA.remove();
+            flagB.remove();
+            return OK;
+        }
     }
 }
 
@@ -423,27 +465,27 @@ const buildPlanner = function (room: Room, layoutType: string) {
         layoutMemory['extractor'].push(compress(x, y));
     }
 
-    // // 构建外墙
-    // const rampart = [];
-    // for (let x = minX; x <= maxX; x++) {
-    //     if (x <= 0 || x >= 49) continue;
-    //     if (terrain.get(x, minY) != TERRAIN_MASK_WALL && minY > 0 && minY < 49)
-    //         rampart.push(compress(x, minY));
-    //     if (terrain.get(x, maxY) != TERRAIN_MASK_WALL && maxY > 0 && maxY < 49)
-    //         rampart.push(compress(x, maxY));
-    // }
-    // for (let y = minY; y <= maxY; y++) {
-    //     if (y <= 0 || y >= 49) continue;
-    //     if (terrain.get(minX, y) != TERRAIN_MASK_WALL && minX > 0 && minX < 49)
-    //         rampart.push(compress(minX, y));
-    //     if (terrain.get(maxX, y) != TERRAIN_MASK_WALL && maxX > 0 && maxX < 49)
-    //         rampart.push(compress(maxX, y));
-    // }
+    // 构建外墙
+    const rampart = [];
+    for (let x = minX; x <= maxX; x++) {
+        if (x <= 0 || x >= 49) continue;
+        if (terrain.get(x, minY) != TERRAIN_MASK_WALL && minY > 0 && minY < 49)
+            rampart.push(compress(x, minY));
+        if (terrain.get(x, maxY) != TERRAIN_MASK_WALL && maxY > 0 && maxY < 49)
+            rampart.push(compress(x, maxY));
+    }
+    for (let y = minY; y <= maxY; y++) {
+        if (y <= 0 || y >= 49) continue;
+        if (terrain.get(minX, y) != TERRAIN_MASK_WALL && minX > 0 && minX < 49)
+            rampart.push(compress(minX, y));
+        if (terrain.get(maxX, y) != TERRAIN_MASK_WALL && maxX > 0 && maxX < 49)
+            rampart.push(compress(maxX, y));
+    }
 
-    // // 清除位于安全区域的部分
-    // // ......（未实现）
+    // 清除位于安全区域的部分
+    // ......（未实现）
 
-    // layoutMemory['rampart'] = rampart;
+    layoutMemory['rampart'] = rampart;
 
     global.log(`已使用静态布局${layoutType}生成${room.name}的布局Memory`);
     return OK;

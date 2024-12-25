@@ -4,8 +4,9 @@ export const Statistics = {
         if (!Memory.stats) Memory.stats = {}
     },
     tickEnd: function() {
-        if (Game.time % 20 !== 1) return     // 每 20 个 tick 执行一次, 且确保错开
         updateCPUinfo();       // 统计 CPU 使用量
+
+        if (Game.time % 20 !== 1) return     // 每 20 个 tick 执行一次
         updateGclGpl();        // 统计 GCL / GPL 的升级百分比和等级
         updateGclGplSpeed();   // 统计 GCL / GPL 的升级速度
         updateRoomStats();     // 房间等级 & 房间能量储备
@@ -22,23 +23,20 @@ function updateCPUinfo() {
     try { Memory.stats.bucket = Game.cpu.bucket; }
     catch (e) { Memory.stats.bucket = 0; };
 
-    Memory.stats.creepCpuInfo = {};
-    for (const key in global.creepCpuInfo) {
-        Memory.stats.creepCpuInfo[key] = global.creepCpuInfo[key] / 20;
-    }
-    global.creepCpuInfo = {};
+    if(!Memory.stats.cpuUsed)
+        Memory.stats.cpuUsed = {
+        total: 0,
+        count: 0
+    };
 
-    Memory.stats.roomCreepCpuInfo = {};
-    for (const key in global.roomCreepCpuInfo) {
-        Memory.stats.roomCreepCpuInfo[key] = global.roomCreepCpuInfo[key] / 20;
+    Memory.stats.cpuUsed['total'] += Game.cpu.getUsed();
+    Memory.stats.cpuUsed['count'] += 1;
+    if (Memory.stats.cpuUsed['count'] >= 1000) {
+        Memory.stats.cpuAvgUsed = Memory.stats.cpuUsed['total'] / Memory.stats.cpuUsed['count'];
+        Memory.stats.cpuUsed['total'] = 0;
+        Memory.stats.cpuUsed['count'] = 0;
     }
-    global.roomCreepCpuInfo = {};
 
-    Memory.stats.roomCpuInfo = {};
-    for (const key in global.roomCpuInfo) {
-        Memory.stats.roomCpuInfo[key] = global.roomCpuInfo[key] / 20;
-    }
-    global.roomCpuInfo = {};
 }
 
 function updateGclGpl() {
@@ -186,7 +184,7 @@ function updateResourceStats() {
         return acc;
     }, {});
 
-    const updateStructureResources = (structure: StructureTerminal | StructureStorage | undefined) => {
+    const updateStructureResources = (structure: any) => {
         if (!structure) return;
         for (const [resourceType, amount] of Object.entries(structure.store)) {
             const resType = resourceType.charAt(0).toUpperCase() + resourceType.slice(1);
@@ -200,8 +198,9 @@ function updateResourceStats() {
     Object.values(Game.rooms)
         .filter(room => room.controller?.my)
         .forEach(room => {
-            updateStructureResources(room.storage);
-            updateStructureResources(room.terminal);
+            room.mass_stores.forEach(structure => {
+                updateStructureResources(structure);
+            });
         });
 
     Memory.stats.Res = resStats;
@@ -224,5 +223,26 @@ function updateCreditInfo() {
     const cr = Game.market.credits;
     Memory.stats.creditChanges = cr - (Number(Memory.stats.lastCredit) || cr)
     Memory.stats.lastCredit = cr;
+
+    // 能量前十求购均价
+    const orders = Game.market.getAllOrders({type: ORDER_BUY, resourceType: RESOURCE_ENERGY});
+    if (!orders || orders.length === 0) {
+        Memory.stats.energyAveragePrice = 0;
+    } else {
+        const topOrders = orders.sort((a, b) => b.price - a.price).slice(0, 10);
+        const averagePrice = topOrders.reduce((sum, order) => sum + order.price, 0) / topOrders.length;
+        Memory.stats.energyAveragePrice = averagePrice;
+    }
+
+    // 能量前十出售均价
+    const sellOrders = Game.market.getAllOrders({type: ORDER_SELL, resourceType: RESOURCE_ENERGY});
+    if (!sellOrders || sellOrders.length === 0) {
+        Memory.stats.energyAverageSellPrice = 0;
+    } else {
+        const topSellOrders = sellOrders.sort((a, b) => a.price - b.price).slice(0, 10);
+        const averageSellPrice = topSellOrders.reduce((sum, order) => sum + order.price, 0) / topSellOrders.length;
+        Memory.stats.energyAverageSellPrice = averageSellPrice;
+    }
+    
 }
 

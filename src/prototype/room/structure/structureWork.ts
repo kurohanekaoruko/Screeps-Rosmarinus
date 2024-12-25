@@ -1,5 +1,6 @@
-import { RoleData, RoleLevelData } from '@/constant/CreepConstant';
+import { RoleData } from '@/constant/CreepConstant';
 import { CompoundColor } from '@/constant/ResourceConstant';
+import { genCreepName } from '@/utils';
 
 /**
  * 管理建筑物的工作
@@ -24,7 +25,8 @@ export default class StructureWork extends Room {
                 spawns.push(spawn);
                 return;
             }
-            const code = spawn.spawning.name.match(/\[(\w+)\]/)?.[1];
+            const role = Memory.creeps[spawn.spawning.name].role;
+            const code = RoleData[role].code;
             this.visual.text(
                 `${code} 🕒${spawn.spawning.remainingTime}`,
                 spawn.pos.x,
@@ -57,9 +59,7 @@ export default class StructureWork extends Room {
             }
             const data = task.data as SpawnTask;
             let role = data.memory.role;
-            const number = (Game.time*36*36 + Math.floor(Math.random()*36*36))
-                            .toString(36).slice(-4).toUpperCase();
-            const name = `[${data.name||RoleData[role].code}]#${number}`;
+            const name = genCreepName(data.name||RoleData[role].code)
             let body: Number[];
             if (data.body?.length > 0) {
                 body = data.body;
@@ -68,7 +68,7 @@ export default class StructureWork extends Room {
             }
             const bodypart = this.GenerateBodys(body, role);
             if (!bodypart || bodypart.length == 0) {
-                this.submitSpawnMission(task.id);
+                this.deleteMissionFromPool('spawn', task.id);
                 return;
             }
             const cost = this.CalculateEnergy(bodypart);
@@ -99,7 +99,7 @@ export default class StructureWork extends Room {
                     if (hc >= 2) return;
                     spawn.spawnCreep(
                         this.GenerateBodys(RoleData['har-car'].ability),
-                        `<${RoleData['har-car'].code}>#${number}`,
+                        genCreepName(RoleData['har-car'].code),
                         { memory: { role: 'har-car', home: this.name } as CreepMemory }
                     );
                     global.log(`房间 ${this.name} 没有且不足以孵化 ${role}，已紧急孵化 har-car。`);
@@ -109,96 +109,25 @@ export default class StructureWork extends Room {
         })
     }
     
+    // 处理 Tower 防御和修复逻辑
     TowerWork() {
-        // 处理 Tower 防御和修复逻辑
+        // 没有tower时不处理
         if (!this.tower) return;
-        let towers = this.tower;
-
-        // 治疗己方战力单位
-        if (!global.attackUnitHeal) global.attackUnitHeal = {};
-        if (Game.time % 10 == 0) {
-            global.attackUnitHeal[this.name] = this.find(FIND_CREEPS, {
-                filter: c => c.hits < c.hitsMax && (c.my || Memory['whitelist']?.includes(c.owner.username)) && (
-                    c.body.some(b => b.type == ATTACK) || c.body.some(b => b.type == RANGED_ATTACK))
-            }).map(c => c.id);
-        }
-        let healers = (global.attackUnitHeal[this.name]||[])
-                .map((id: Id<Creep>) => Game.getObjectById(id))
-                .filter((c: Creep | null) => c && c.hits < c.hitsMax) as Creep[] | PowerCreep[];
-        if (healers.length > 0) {
-            towers.forEach(tower => {
-                let index = Math.floor(Math.random() * healers.length);
-                tower.heal(healers[index]);
-            })
-            return;
-        }
 
         // 如果有敌人，则攻击敌人
-        if (!global.towerTargets) global.towerTargets = {};
-        if (Game.time % 10 == 0) {
-            global.towerTargets[this.name] = 
-                this.find(FIND_HOSTILE_CREEPS)
-                    .filter(c => !Memory['whitelist']?.includes(c.owner.username))
-                    .map(c => c.id);
-        }
-        let Hostiles = (global.towerTargets[this.name]||[])
-                        .map((id: Id<Creep>) => Game.getObjectById(id))
-                        .filter((c: Creep | null) => c) as Creep[] | PowerCreep[];
-        if (Hostiles.length > 0) {
-            towers.forEach(tower => {
-                if (Hostiles.length == 0) return;
-                let index = Math.floor(Math.random() * Hostiles.length);
-                tower.attack(Hostiles[index]);
-            })
-            return;
-        }
+        if (this.TowerAttackEnemy()) return;
 
-        // 治疗己方所有单位
-        if (!global.towerHealTargets) global.towerHealTargets = {};
-        if (Game.time % 10 == 0) {
-            global.towerHealTargets[this.name] = this.find(FIND_POWER_CREEPS, {
-                filter: c => c.hits < c.hitsMax && (c.my || Memory['whitelist']?.includes(c.owner.username))
-                }).map(c => c.id);
-            global.towerHealTargets[this.name] = global.towerHealTargets[this.name].concat(this.find(FIND_CREEPS, {
-                filter: c => c.hits < c.hitsMax && (c.my || Memory['whitelist']?.includes(c.owner.username))
-            }).map(c => c.id));
-        }
-        healers = (global.towerHealTargets[this.name]||[])
-                .map((id: Id<Creep>) => Game.getObjectById(id))
-                .filter((c: Creep | null) => c && c.hits < c.hitsMax) as Creep[] | PowerCreep[];
-        if (healers.length > 0) {
-            towers.forEach(tower => {
-                let index = Math.floor(Math.random() * healers.length);
-                tower.heal(healers[index]);
-            })
-            return;
-        }
+        // 自动修复被攻击的墙
+        if (this.TowerAutoRepair()) return;
+
+        // 攻击 NPC
+        if (this.TowerAttackNPC()) return;
+
+        // 治疗己方单位
+        if (this.TowerHealCreep()) return;
 
         // 修复建筑物
-        if (!global.towerTaskTarget) global.towerTaskTarget = {};
-        if (Game.time % 10 == 0) {
-            global.towerTaskTarget[this.name] = null;
-            if (this.checkMissionInPool('repair')) {
-                const task = this.getMissionFromPool('repair');
-                if(!task) return;
-                const target = Game.getObjectById(task.data.target) as Structure;
-                if(!target) return;
-                if (target.hits >= task.data.hits) {
-                    this.deleteMissionFromPool('repair', task.id);
-                    return;
-                }
-                global.towerTaskTarget[this.name] = target.id;
-            }
-        }
-        const target = Game.getObjectById(global.towerTaskTarget[this.name]) as Structure;
-        if(target) {
-            towers.forEach(t => {
-                // 如果塔的能量不足，则不执行修复逻辑
-                if(t.store[RESOURCE_ENERGY] < 650) return;
-                t.repair(target);
-            });
-        }
-        
+        if (this.TowerTaskRepair()) return;
     }
     
     LinkWork() {
@@ -317,6 +246,7 @@ export default class StructureWork extends Room {
         let otherLabs = this.lab
             .filter(lab => lab.id !== memory.labA && lab.id !== memory.labB &&
                     lab && lab.cooldown === 0);
+        if (!otherLabs || otherLabs.length === 0) return;
         // boost设置
         const boostmem = Memory['StructControlData'][this.name]['boostRes'];
         const boostmem2 = Memory['StructControlData'][this.name]['boostTypes']
@@ -330,14 +260,16 @@ export default class StructureWork extends Room {
             if (boostmem2 && boostmem2[lab.id] &&
                 boostmem2[lab.id].type != labProduct) continue;
             // 检查lab中是否存在与合成产物不同的资源
-            if (lab.mineralType && lab.mineralType !== labProduct) {
+            if (lab.mineralType &&
+                lab.mineralType !== labProduct) {
                 continue; // 如果存在不同的资源，跳过这个lab
             }
             // 检查lab是否已满
             if (lab.store.getFreeCapacity(labProduct) === 0) {
                 continue; // 如果lab已满，跳过这个lab
             }
-            // 尝试进行合成
+            
+            // 进行合成
             lab.runReaction(labA, labB);
         }
     }
@@ -357,7 +289,7 @@ export default class StructureWork extends Room {
             sendAmount = Math.min(sendAmount, terminal.store[resourceType] - cost);
         }
         else if (cost > terminal.store[RESOURCE_ENERGY]) {
-            sendAmount = Math.floor(sendAmount * terminal.store[RESOURCE_ENERGY] / cost);
+            sendAmount = Math.floor(sendAmount * (terminal.store[RESOURCE_ENERGY] / cost));
         }
         const result = terminal.send(resourceType, sendAmount, targetRoom);
         if (result === OK) {

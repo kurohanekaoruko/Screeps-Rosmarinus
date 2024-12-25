@@ -1,16 +1,13 @@
 const outAttack = {
     run: function (creep: Creep) {
-        if (!creep.memory.boosted) {
-            creep.memory.boosted = creep.goBoost(['UH']);
-            return;
-        }
-
         if (creep.room.name != creep.memory.targetRoom || creep.pos.isRoomEdge()) {
             creep.moveToRoom(creep.memory.targetRoom);
             return;
         }
     
-        let hostileCreeps = creep.room.find(FIND_HOSTILE_CREEPS);
+        let hostileCreeps = creep.room.find(FIND_HOSTILE_CREEPS, {
+            filter: (c) => c.owner.username == 'Source Keeper' || c.owner.username == 'Invader'
+        });
         if (hostileCreeps.length > 0) {
             let target = creep.pos.findClosestByRange(hostileCreeps);
             if (!creep.pos.isNearTo(target)) {

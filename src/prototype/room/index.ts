@@ -1,6 +1,7 @@
 import { assignPrototype } from "@/prototype/base"
 import BaseFunction from "./function/baseFunction"
-import StructureWork from "./function/structureWork"
+import StructureWork from "./structure/structureWork"
+import TowerControl from "./structure/towerControl"
 import OutMine from "./function/outMine"
 import ActiveDefend from "./function/activeDefend"
 import RoomInit from "./init"
@@ -20,6 +21,7 @@ import MissionSubmit from "./mission/pool/MissionSubmit"
 const plugins = [
     BaseFunction,   // 基础函数
     StructureWork,  // 建筑物工作
+    TowerControl,   // 塔防控制
     OutMine,        // 外矿采集
     
     AutoMarket,     // 自动市场交易

@@ -279,7 +279,7 @@ const outCarry = {
             if(result == OK) return true;
             if(result == ERR_NOT_IN_RANGE) { creep.moveTo(road); return true; }
         }
-        const roadSite = creep.room.find(FIND_CONSTRUCTION_SITES)
+        const roadSite = creep.room.find(FIND_MY_CONSTRUCTION_SITES)
         if (roadSite.length > 0) {
             const site = creep.pos.findClosestByRange(roadSite);
             const result = creep.build(site)
@@ -303,8 +303,11 @@ const outCarry = {
         const sourcePos = creep.room.find(FIND_SOURCES);
         for (const source of sourcePos) {
             pos.push(source.pos);}
-        const mineralPos = creep.room.find(FIND_MINERALS)[0];
-        if (mineralPos) pos.push(mineralPos.pos);
+        const isCenterRoom = /^[EW]\d*[456][NS]\d*[456]$/.test(creep.room.name);
+        if (isCenterRoom) {
+            const mineralPos = creep.room.find(FIND_MINERALS)[0];
+            if (mineralPos) pos.push(mineralPos.pos);
+        }
         const closestPos = creep.pos.findClosestByRange(pos);
         const path = creep.room.findPath(creep.pos, closestPos, {
             ignoreCreeps: true,
@@ -336,20 +339,21 @@ const outCarry = {
         if (creep.room.name == creep.memory.targetRoom &&
             creep.store.getUsedCapacity() < creep.store.getCapacity() / 2) return true;
         this.carry(creep);
-        if (creep.room.name !== creep.memory.homeRoom &&
-            creep.room.name !== creep.memory.targetRoom &&
-            creep.fatigue > 0) {
-            creep.room.createConstructionSite(creep.pos, STRUCTURE_ROAD);
-        }
+        // if (creep.room.name !== creep.memory.homeRoom &&
+        //     creep.room.name !== creep.memory.targetRoom &&
+        //     creep.fatigue > 0) {
+        //     creep.room.createConstructionSite(creep.pos, STRUCTURE_ROAD);
+        // }
+        if(creep.memory.dontPullMe) creep.memory.dontPullMe = false;
         return creep.store.getUsedCapacity() === 0;
     },
     
     source: function(creep: Creep) {
-        if (creep.hits < (creep.memory.cache['hits']||creep.hits) &&
+        if (creep.hits < creep.hitsMax * 0.5 &&
             creep.store.getUsedCapacity() > 0) return true;
-        creep.memory.cache['hits'] = creep.hits;
         this.withdraw(creep);
         this.createSite(creep);
+        if(creep.memory.dontPullMe) creep.memory.dontPullMe = false;
         return creep.store.getFreeCapacity() === 0;
     }
 }

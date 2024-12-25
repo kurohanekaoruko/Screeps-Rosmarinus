@@ -10,6 +10,16 @@ function UpdateTransportMission(room: Room) {
     UpdateNukerMission(room);
 }
 
+const LevelMap = {
+    boost: 0,
+    ext: 1,
+    tower: 1,
+    labEnergy: 1,
+    lab: 2,
+    powerSpawn: 2,
+    nuker: 3,
+}
+
 function UpdateEnergyMission(room: Room) {
     const storage = room.storage;
     const terminal = room.terminal;
@@ -20,7 +30,7 @@ function UpdateEnergyMission(room: Room) {
 
     if(terminal && storage) {
         storageOrTerminal = terminal.store[RESOURCE_ENERGY] > storage.store[RESOURCE_ENERGY] ? terminal : storage;
-    } else if(terminal) {
+    } else {
         storageOrTerminal = terminal || storage;
     }
 
@@ -41,7 +51,7 @@ function UpdateEnergyMission(room: Room) {
                 resourceType: RESOURCE_ENERGY,
                 amount: s.store.getFreeCapacity(RESOURCE_ENERGY),
             }
-            room.TransportMissionAdd(0, taskdata)
+            room.TransportMissionAdd(LevelMap.ext, taskdata)
         })
     }
 
@@ -60,7 +70,7 @@ function UpdateEnergyMission(room: Room) {
                 resourceType: RESOURCE_ENERGY,
                 amount: t.store.getFreeCapacity(RESOURCE_ENERGY),
             }
-            room.TransportMissionAdd(0, taskdata)
+            room.TransportMissionAdd(LevelMap.tower, taskdata)
         })
     }
 
@@ -82,7 +92,7 @@ function UpdateEnergyMission(room: Room) {
                 resourceType: RESOURCE_ENERGY,
                 amount: l.store.getFreeCapacity(RESOURCE_ENERGY),
             }
-            room.TransportMissionAdd(0, taskdata)
+            room.TransportMissionAdd(LevelMap.labEnergy, taskdata)
         })
     }
 
@@ -105,7 +115,7 @@ function UpdateEnergyMission(room: Room) {
                 resourceType: RESOURCE_ENERGY,
                 amount: amount,
             }
-            room.TransportMissionAdd(1, taskdata)
+            room.TransportMissionAdd(LevelMap.powerSpawn, taskdata)
         }
     }
 
@@ -123,7 +133,7 @@ function UpdateEnergyMission(room: Room) {
                 resourceType: RESOURCE_ENERGY,
                 amount: amount,
             }
-            room.TransportMissionAdd(3, taskdata)
+            room.TransportMissionAdd(LevelMap.nuker, taskdata)
         }
     }
 
@@ -160,7 +170,7 @@ function UpdatePowerMission(room: Room) {
         resourceType: RESOURCE_POWER,
         amount: neededAmount,
     }
-    room.TransportMissionAdd(1, taskdata)
+    room.TransportMissionAdd(LevelMap.powerSpawn, taskdata)
 }
 
 // 检查lab是否需要填充资源
@@ -189,10 +199,11 @@ function UpdateLabMission(room: Room) {
                 resourceType: lab.mineralType,
                 amount: lab.store[lab.mineralType],
             }
-            room.TransportMissionAdd(2, taskdata);
+            room.TransportMissionAdd(LevelMap.lab, taskdata);
         })
         return;
     }
+    
     const labA = Game.getObjectById(BotMemStructures.labA) as StructureLab;
     const labB = Game.getObjectById(BotMemStructures.labB) as StructureLab;
     const labAtype = BotMemStructures.labAtype;
@@ -211,7 +222,7 @@ function UpdateLabMission(room: Room) {
             resourceType: lab.mineralType,
             amount: lab.store[lab.mineralType],
         }
-        room.TransportMissionAdd(2, taskdata)
+        room.TransportMissionAdd(LevelMap.lab, taskdata)
     });
 
     // 检查labA和labB是否需要填充设定的资源
@@ -229,7 +240,7 @@ function UpdateLabMission(room: Room) {
             resourceType: type,
             amount: Math.min(lab.store.getFreeCapacity(type), target.store[type]),
         }
-        room.TransportMissionAdd(2, taskdata)
+        room.TransportMissionAdd(LevelMap.lab, taskdata)
     });
 
     const boostmem = BotMemStructures['boostRes'];
@@ -250,7 +261,7 @@ function UpdateLabMission(room: Room) {
             resourceType: lab.mineralType,
             amount: lab.store[lab.mineralType],
         }
-        room.TransportMissionAdd(2, taskdata)
+        room.TransportMissionAdd(LevelMap.lab, taskdata)
     });
 
     // 如果lab的资源不同于产物，则全部取出（不包括labA、labB，以及设定了boost的）
@@ -267,7 +278,7 @@ function UpdateLabMission(room: Room) {
             resourceType: lab.mineralType,
             amount: lab.store[lab.mineralType],
         }
-        room.TransportMissionAdd(2, taskdata)
+        room.TransportMissionAdd(LevelMap.lab, taskdata)
     });
 }
 
@@ -343,7 +354,7 @@ function UpdateLabBoostMission(room: Room) {
                 resourceType: lab.mineralType,
                 amount: lab.store[lab.mineralType],
             }
-            room.TransportMissionAdd(0, taskdata)
+            room.TransportMissionAdd(LevelMap.boost, taskdata)
             return;
         }
 
@@ -366,7 +377,7 @@ function UpdateLabBoostMission(room: Room) {
                 resourceType: boostType,
                 amount: Math.min(amount, target.store[boostType])
             }
-            room.TransportMissionAdd(0, taskdata)
+            room.TransportMissionAdd(LevelMap.boost, taskdata)
             return;
         }
     });
@@ -402,7 +413,7 @@ function UpdateNukerMission(room: Room) {
         resourceType: RESOURCE_GHODIUM,
         amount: amount,
     }
-    room.TransportMissionAdd(3, taskdata)
+    room.TransportMissionAdd(LevelMap.nuker, taskdata)
 }
 
 

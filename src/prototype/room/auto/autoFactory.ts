@@ -1,3 +1,4 @@
+import {Goods} from "@/constant/ResourceConstant";
 
 export default class AutoFactory extends Room {
     autoFactory() {
@@ -16,7 +17,8 @@ export default class AutoFactory extends Room {
 
         // 没有限额，原料充足，则不变更任务
         if (amount <= 0 && Product && components &&
-            Object.keys(components).every((c: any) => 
+            Object.keys(components).every((c: any) =>
+                (Goods.includes(c) && this.getResourceAmount(c) >= components[c]) ||
                 this.getResourceAmount(c) >= 1000 || this.factory.store[c] >= components[c]
             )
         ) return;
@@ -24,6 +26,7 @@ export default class AutoFactory extends Room {
         if (amount > 0 && Product && components &&
             this.getResourceAmount(Product) < amount &&
             Object.keys(components).every((c: any) => 
+                (Goods.includes(c) && this.getResourceAmount(c) >= components[c]) ||
                 this.getResourceAmount(c) >= 1000 || this.factory.store[c] >= components[c]
             )
         ) return;
@@ -49,8 +52,13 @@ export default class AutoFactory extends Room {
             const components = COMMODITIES[res].components;
             const amount = autoFactoryMap[res] - 1000;
             if (amount > 0 && this.getResourceAmount(res) >= amount * 0.9) continue;
-            if (Object.keys(components).some((c: any) =>
-                this.getResourceAmount(c) < 1000)) continue;
+            if (Goods.includes(res as any)) {
+                if (Object.keys(components).some((c: any) =>
+                    this.getResourceAmount(c) < components[c] * 10)) continue;
+            } else {
+                if (Object.keys(components).some((c: any) =>
+                    this.getResourceAmount(c) < 1000)) continue;
+            }
             task = res;
             lv = level;
         }

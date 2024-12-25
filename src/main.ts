@@ -1,15 +1,21 @@
 import { createApp } from '@/framework/createApp';
-import { roomRunner, creepRunner, powerRunner } from '@/runner';
+
+import { roomControl } from '@/control/RoomControl'
+import { creepControl } from '@/control/CreepControl'
+import { powerControl } from '@/control/PowerControl'
+
 import { PrototypeExtension } from '@/prototype';
 
 import { GlobalInit } from '@/modules/GlobalInit';
 import { MemoryInit } from '@/modules/MemoryInit';
-import { ClearModule, GeneratePixel, Statistics } from '@/function';
+import { ClearModule, GeneratePixel, Statistics } from '@/modules/function';
 
 import { DoubleSquad } from '@/modules/actions/DoubleSquad';
 import { ClaimModule } from '@/modules/actions/ClaimModule';
 
 import { ResourceManage } from '@/modules/ResourceManage';
+
+import SquadModule from '@/modules/warSquad/SquadModule';
 
 import '@/modules/betterMove';    // 超级移动优化
 import '@/modules/structureCache';  // 极致建筑缓存
@@ -22,13 +28,15 @@ app.on(GlobalInit);     // 全局变量模块
 
 app.on(MemoryInit);     // 初始化内存
 
-app.set('room', roomRunner);    // 房间运行
+app.set('room', roomControl);    // 房间运行
 
-app.set('creep', creepRunner);    // creep行动
+app.set('creep', creepControl);    // creep行动
 
-app.set('powerCreep', powerRunner);  // powerCreep行动
+app.set('powerCreep', powerControl);  // powerCreep行动
 
 app.mount(PrototypeExtension);    // 原型挂载
+
+app.on(SquadModule);  // 四人小队模块
 
 app.on(ResourceManage); // 资源调度管理
 
@@ -50,8 +58,8 @@ export const loop = app.run;
 // export const loop = require('调用栈分析器').warpLoop(app.run);
 
 
-// 性能开销分析
-// import profiler from './function/screeps-profiler';
+// // 性能开销分析
+// import profiler from './modules/function/screeps-profiler';
 // profiler.enable();
 // export const loop = function() {
 //     profiler.wrap(app.run);

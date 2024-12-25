@@ -116,25 +116,39 @@ export default class BaseFunction extends Room {
         return closestSource;
     }
 
-    /* 动态生成体型 */
+    /* 动态生成角色体型 */
     GetRoleBodys(role: string, upbody?:boolean) {
-        const lv = this.getEffectiveRoomLevel();
+        let lv = this.level;
         let body: number[];
-        if (RoleData[role]['adaption']) {
-            const bodyconfig = RoleLevelData[role][lv]
-            if (upbody && bodyconfig.upbodypart) {
-                body = bodyconfig.upbodypart;
-            } else {
-                body = bodyconfig.bodypart
-            }
-        } else {
-            body = RoleData[role].ability;
-        }
 
-        if (lv == 8) {
-            if (role == 'harvester' && this.source.some(s => (s.effects||[]).some(e => e.effect == PWR_REGEN_SOURCE))) {
-                body = RoleLevelData[role][lv].upbodypart;
+        if (RoleLevelData[role]) {
+            while (lv >= 1) {
+                const bodyconfig = RoleLevelData[role][lv]
+                if (upbody && bodyconfig.upbodypart) {
+                    body = bodyconfig.upbodypart;
+                } else {
+                    body = bodyconfig.bodypart
+                }
+                if (this.energyCapacityAvailable >=
+                    this.CalculateEnergy(body)) break;
+                lv--;
             }
+            if (lv === 0) return [];
+        } else if (RoleData[role]) {
+            return RoleData[role].ability;
+        } else return [];
+
+        if (lv !== 8) return body;
+
+        switch (role) {
+            case 'harvester':
+                if(this.source.some(s => (s.effects||[])
+                    .some(e => e.effect == PWR_REGEN_SOURCE))) {
+                    body = RoleLevelData[role][lv].upbodypart;
+                }
+                break;
+            default:
+                break;
         }
         return body;
     }
@@ -151,14 +165,33 @@ export default class BaseFunction extends Room {
             if (tough) body_list = AddList(body_list, tough, TOUGH)
             switch (role) {
             case 'power-attack':
-                if (move) body_list = AddList(body_list, move - 2, MOVE)
+                if (move) body_list = AddList(body_list, move - 1, MOVE)
                 if (attack) body_list = AddList(body_list, attack, ATTACK)
-                if (move) body_list = AddList(body_list, 2, MOVE)
+                if (move) body_list = AddList(body_list, 1, MOVE)
                 break;
             case 'power-carry':
                 if (carry) body_list = AddList(body_list, carry, CARRY)
                 if (move) body_list = AddList(body_list, move, MOVE)
                 body_list = AlternateList(body_list);
+                break;
+            case 'out-carry':
+                let carryCount = Math.min(Math.floor(carry/2), move);
+                for (let i = 0; i < carryCount; i++) {
+                    body_list = AddList(body_list, 2, CARRY)
+                    body_list = AddList(body_list, 1, MOVE)
+                }
+                if (carry-carryCount*2) body_list = AddList(body_list, carry-carryCount*2, CARRY);
+                if (move-carryCount) body_list = AddList(body_list, move-carryCount, MOVE);
+                break;
+            case 'out-car':
+                if (work) body_list = AddList(body_list, work, WORK);
+                let carCount = Math.min(Math.floor(carry/2), move);
+                for (let i = 0; i < carCount; i++) {
+                    body_list = AddList(body_list, 2, CARRY)
+                    body_list = AddList(body_list, 1, MOVE)
+                }
+                if (carry-carCount*2>0) body_list = AddList(body_list, carry-carCount*2, CARRY);
+                if (move-carCount>0) body_list = AddList(body_list, move-carCount, MOVE);
                 break;
             case 'out-defend':
                 if (move) body_list = AddList(body_list, move - 2, MOVE)
@@ -171,6 +204,12 @@ export default class BaseFunction extends Room {
             case 'out-attack':
                 if (move) body_list = AddList(body_list, move-2, MOVE)
                 if (attack) body_list = AddList(body_list, attack, ATTACK)
+                if (heal) body_list = AddList(body_list, heal, HEAL)
+                if (move) body_list = AddList(body_list, 2, MOVE)
+                break;
+            case 'out-renged':
+                if (move) body_list = AddList(body_list, move - 2, MOVE)
+                if (range_attack) body_list = AddList(body_list, range_attack, RANGED_ATTACK)
                 if (heal) body_list = AddList(body_list, heal, HEAL)
                 if (move) body_list = AddList(body_list, 2, MOVE)
                 break;
@@ -216,7 +255,7 @@ export default class BaseFunction extends Room {
 
     /** 计算角色的孵化所需能量 */
     CalculateRoleEnergy(role: string, lv: number) {
-        const bodypart = RoleData[role]['adaption'] ? RoleLevelData[role][lv].bodypart : RoleData[role].ability;
+        const bodypart = RoleLevelData[role] ? RoleLevelData[role][lv].bodypart : RoleData[role].ability;
         let energy = 0;
         energy += bodypart[0] * 100;
         energy += bodypart[1] * 50;
@@ -230,15 +269,17 @@ export default class BaseFunction extends Room {
     }
 
     /** 给lab分配boost任务 */
-    AssignBoostTask(mineral: string, amount: number) {
+    AssignBoostTask(mineral: ResourceConstant, amount: number) {
         const boostmem = Memory['StructControlData'][this.name];
         if (!boostmem['boostRes']) boostmem['boostRes'] = {};
+        const stores = [this.storage, this.terminal, ...this.lab]
+        if (stores.reduce((pre, cur) => pre + cur.store[mineral], 0) < amount) return false;
         // 如果已有相同任务, 则增加其数量
         const lab = this.lab.find(lab => boostmem['boostRes'][lab.id] && boostmem['boostRes'][lab.id].mineral === mineral);
         if (lab) {
             boostmem['boostRes'][lab.id].amount += amount;
-            console.log(`增加boost任务: ${mineral} ${amount} 到 ${lab.id}`);
-            console.log(`当前boost任务量: ${mineral} - ${boostmem['boostRes'][lab.id].amount}`);
+            // console.log(`增加boost任务: ${mineral} ${amount} 到 ${lab.id}`);
+            // console.log(`当前boost任务量: ${mineral} - ${boostmem['boostRes'][lab.id].amount}`);
             return true;
         }
         // 找到未被分配boost任务，并且非底物的lab
@@ -250,7 +291,7 @@ export default class BaseFunction extends Room {
                 mineral: mineral,
                 amount: amount
             };
-            console.log(`分配boost任务: ${mineral} ${amount} 到 ${lab.id}`);
+            // console.log(`分配boost任务: ${mineral} ${amount} 到 ${lab.id}`);
             return true;
         } else {
             // 没有就暂时放进队列

@@ -33,6 +33,7 @@ import outClaim from './outCollect/outClaim';
 import outDefend from './outCollect/outDefend';
 import outInvader from './outCollect/outInvader';
 import outAttack from './outCollect/outAttack';
+import outRanged from './outCollect/outRanged';
 import outMiner from './outCollect/outMiner';
 
 import power_attack from './powerCollect/power-attack';
@@ -49,7 +50,12 @@ import one_tough from './oneBody/one_tough';
 import one_ranged from './oneBody/one_ranged';
 
 import defend_attack from './defend/defend-attack';
-import defend_range from './defend/defend-range';
+import defend_ranged from './defend/defend-ranged';
+
+import quad_attack from './quadRole/quad-attack';
+import quad_heal from './quadRole/quad-heal';
+import quad_dismantle from './quadRole/quad-dismantle';
+import quad_ranged from './quadRole/quad-ranged';
 
 
 
@@ -59,7 +65,8 @@ export {claimer, lclaimer, aclaimer};
 export {logistic, harvest_carry, SpeedUpgrader, SpeedRepair, dismantle, bigCarry, cleaner};
 export {one_tough, one_ranged};
 export {double_attack, double_dismantle, double_heal, double_defender};
-export {scout, outHarvest, outCarry, outBuild, outClaim, outDefend, outInvader, outAttack, outMiner};
+export {scout, outHarvest, outCarry, outBuild, outClaim, outDefend, outInvader, outAttack, outRanged, outMiner};
 export {power_attack, power_heal, power_carry, power_ranged};
 export {deposit_harvest, deposit_transfer,deposit_ranged,deposit_attack};
-export {defend_attack,defend_range};
+export {defend_attack,defend_ranged};
+export {quad_attack, quad_heal, quad_dismantle, quad_ranged};

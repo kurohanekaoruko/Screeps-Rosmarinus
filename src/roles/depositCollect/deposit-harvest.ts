@@ -8,9 +8,6 @@ const deposit_harvest = {
         }
 
         if (!creep.memory['targetDeposit']) {
-            // 初始化最少Creep绑定计数
-            let minCreepCount = Infinity;
-            let leastCrowdedDeposit = [];
             let deposits = creep.room.find(FIND_DEPOSITS);
             // 筛选
             let activeDeposits = deposits.filter(d => d.lastCooldown <= 120);
@@ -18,8 +15,8 @@ const deposit_harvest = {
                 deposits = activeDeposits;
             }
             if (deposits.length == 0) return;
-            // 遍历找到最优的来绑定
-            deposits.forEach(d => {
+            deposits.sort((a, b) => a.lastCooldown - b.lastCooldown);
+            let deposit = deposits.find(d => {
                 // 统计当前房间内绑定该Deposit的Creep数量
                 let creepCount = creep.room.find(FIND_MY_CREEPS, {
                     filter: (c: any) => 
@@ -43,24 +40,11 @@ const deposit_harvest = {
                 }
                 // 绑定满的忽略
                 if (creepCount >= maxPosCount) return;
-                // 记录绑定数最小的采集点
-                if (creepCount < minCreepCount) {
-                    minCreepCount = creepCount;
-                    leastCrowdedDeposit = [d];
-                } else if (creepCount === minCreepCount) {
-                    leastCrowdedDeposit.push(d);
-                }
-            })
-            // 若有多个结果, 则选取最近的
-            let closestDeposit = null;
-            if (leastCrowdedDeposit.length == 1) {
-                closestDeposit = leastCrowdedDeposit[0];
-            } else if (leastCrowdedDeposit.length > 1) {
-                closestDeposit = creep.pos.findClosestByRange(leastCrowdedDeposit);
-            } else {    // 没有可采集的Deposit
-                return; 
-            }
-            creep.memory['targetDeposit'] = closestDeposit.id;
+                if (creepCount >= 3) return;
+                return true;
+            });
+
+            creep.memory['targetDeposit'] = deposit.id;
         }
 
         const deposit = Game.getObjectById(creep.memory['targetDeposit']) as Deposit;

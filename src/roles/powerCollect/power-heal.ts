@@ -1,5 +1,5 @@
 const power_heal = {
-    source: function(creep: Creep) {
+    run: function(creep: Creep) {
         if (!creep.memory.notified) {
             creep.notifyWhenAttacked(false);
             creep.memory.notified = true;
@@ -8,10 +8,7 @@ const power_heal = {
         if(!creep.memory.boosted) {
             const boostLevel = creep.memory['boostLevel'];
             if (boostLevel == 1) {
-                creep.memory.boosted = creep.goBoost(['LO'], true);
-                if (creep.memory.boosted) {
-                    creep.room.SubmitBoostTask('LO', 750);
-                }
+                creep.memory.boosted = creep.goBoost(['LO'], true, true);
             } else {
                 creep.memory.boosted = true;
             }
@@ -34,6 +31,7 @@ const power_heal = {
             return false;
         }
 
+
         const target = Game.getObjectById(creep.memory.bind) as Creep;
         if (target) {
             if (creep.pos.isNearTo(target)) {
@@ -47,9 +45,6 @@ const power_heal = {
         }
 
         return false;
-    },
-    target: function(creep: Creep) {
-        return true;
     }
 }
 

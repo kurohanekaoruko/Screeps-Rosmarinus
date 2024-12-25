@@ -1,5 +1,5 @@
 
-const double_attack_action = {
+const action = {
     move: function (creep: Creep) {
         const name = creep.name.match(/#(\w+)/)?.[1] ?? creep.name;
         const moveflag = Game.flags[name + '-move'];
@@ -21,25 +21,43 @@ const double_attack_action = {
             return true;
         }
 
-        const area: [number, number, number, number] = 
-                    aFlag ? [Math.max(aFlag.pos.y - 3, 0), Math.max(aFlag.pos.x - 3, 0),
-                             Math.min(aFlag.pos.y + 3, 49), Math.min(aFlag.pos.x + 3, 49)] :
-                            [Math.max(creep.pos.y - 5, 0), Math.max(creep.pos.x - 5, 0),
-                             Math.min(creep.pos.y + 5, 49), Math.min(creep.pos.x + 5, 49)];
-        const enemies = creep.room
-                        .lookForAtArea(LOOK_CREEPS, ...area, true)
-                        .map(obj => obj.creep)
-                        .filter(creep => !creep.my)
-        if (enemies.length > 0) {
-            const targetEnemy = creep.pos.findClosestByRange(enemies);
-            if(creep.pos.inRangeTo(targetEnemy, 1)) {
-                creep.attack(targetEnemy); // 优先攻击敌人
+        if (aFlag) {
+            const enemies = creep.room
+                            .lookForAtArea(LOOK_CREEPS,
+                                Math.max(aFlag.pos.y - 5, 0), Math.max(aFlag.pos.x - 5, 0),
+                                Math.min(aFlag.pos.y + 5, 49), Math.min(aFlag.pos.x + 5, 49), true)
+                            .map(obj => obj.creep)
+                            .filter(creep => !creep.my)
+            if (enemies.length > 0) {
+                const targetEnemy = creep.pos.findClosestByRange(enemies);
+                if(creep.pos.inRangeTo(targetEnemy, 1)) {
+                    creep.attack(targetEnemy);
+                } else {
+                    creep.doubleMove(targetEnemy.pos, '#ff0000');
+                }
+                return true;
             } else {
-                creep.doubleMove(targetEnemy.pos, '#ff0000');
+                const target = aFlag.pos.lookFor(LOOK_STRUCTURES)[0] as Structure;
+                if (target) {
+                    if(creep.pos.inRangeTo(target, 1)) {
+                        creep.attack(target);
+                    } else {
+                        creep.doubleMove(target.pos, '#ff0000');
+                    }
+                }
             }
-            return true;
+        } else {
+            const enemies = creep.room.find(FIND_HOSTILE_CREEPS);
+            if (enemies.length > 0) {
+                const targetEnemy = creep.pos.findClosestByRange(enemies);
+                if(creep.pos.inRangeTo(targetEnemy, 1)) {
+                    creep.attack(targetEnemy);
+                } else {
+                    creep.doubleMove(targetEnemy.pos, '#ff0000');
+                }
+            }
         }
-
+        
         return false
     }
 }
@@ -67,12 +85,13 @@ const double_attack = {
             return;
         }
     
-        if(double_attack_action.move(creep)) return;
+        // 旗帜控制移动
+        if (action.move(creep)) return;
     
         // 移动到目标房间.未到达房间不继续行动
         if (creep.doubleMoveToRoom(creep.memory.targetRoom, '#ff0000')) return;
         
-        if(double_attack_action.attack(creep)) return;
+        if (action.attack(creep)) return;
     }
 }
 

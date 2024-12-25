@@ -1,11 +1,21 @@
 function withdraw(creep: Creep) {
-    const drops = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 5, {
-        filter: (i) => i.resourceType === creep.memory['resource'] || !creep.memory['resource']
-    })
+    if(!creep.memory['resource']) creep.memory['resource'] = RESOURCE_ENERGY;
+    const drop = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 5, {
+        filter: (i) => i.resourceType === creep.memory['resource']
+    })[0]
+    if (drop) {
+        if (creep.pickup(drop) === ERR_NOT_IN_RANGE) {
+            creep.moveTo(drop);
+        }
+        return;
+    }
 
-    if (drops.length > 0) {
-        if (creep.pickup(drops[0]) === ERR_NOT_IN_RANGE) {
-            creep.moveTo(drops[0]);
+    const tombstone = creep.pos.findInRange(FIND_TOMBSTONES, 5, {
+        filter: (i) => i.store.getUsedCapacity() > 0 && (i.store.getUsedCapacity(creep.memory['resource']))
+    })[0]
+    if (tombstone) {
+        if (creep.withdraw(tombstone, creep.memory['resource']) === ERR_NOT_IN_RANGE) {
+            creep.moveTo(tombstone);
         }
         return;
     }
@@ -15,7 +25,7 @@ function withdraw(creep: Creep) {
         return;
     }
 
-    const res = creep.memory['resource'] || RESOURCE_ENERGY;
+    const res = creep.memory['resource'];
 
     const target = [creep.room.storage, creep.room.terminal].filter((i) => {
         return i && i.store[res] > 0 && (creep.room.my || 
@@ -41,7 +51,7 @@ function transfer(creep: Creep) {
     const target = creep.pos.findClosestByRange(targets);
 
     if (target) {
-        creep.transferOrMoveTo(target, res);
+        creep.transferOrMoveTo(target, Object.keys(creep.store)[0] as ResourceConstant);
     } else {
         creep.drop(res);
     }

@@ -1,5 +1,5 @@
 const power_ranged = {
-    source: function(creep: Creep) {
+    run: function(creep: Creep) {
         if (!creep.memory.notified) {
             creep.notifyWhenAttacked(false);
             creep.memory.notified = true;
@@ -21,15 +21,14 @@ const power_ranged = {
 
         const hostileCreeps = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5, {
             filter: (c) => 
-                c.body.some(p => p.type == HEAL || p.type == ATTACK || p.type == RANGED_ATTACK ||
-                            p.type == WORK || p.type == CARRY)
+                c.body.some(p => p.type == HEAL || p.type == ATTACK || p.type == RANGED_ATTACK)
         });
         if (hostileCreeps.length > 0) {
             const healer = hostileCreeps.find(c => c.body.some(p => p.type == HEAL));
             const attacker = hostileCreeps.find(c => c.body.some(p => p.type == ATTACK));
             const target = healer || attacker;
             if(target && !creep.pos.inRangeTo(target, 1)) {
-                creep.moveTo(target, {ignoreCreeps: false});
+                creep.moveTo(target, {ignoreCreeps: false,range:1});
                 moveOK = true;
             }
             const range3hostiles = hostileCreeps.filter(c => creep.pos.inRangeTo(c, 3));
@@ -46,8 +45,10 @@ const power_ranged = {
                 const range3healer = range3hostiles.find(c => c.body.some(p => p.type == HEAL));
                 const range3attacker = range3hostiles.find(c => c.body.some(p => p.type == ATTACK));
                 const range3target = range3healer || range3attacker || range3hostiles[0];
-                if(range3target) creep.rangedAttack(range3target);
-                rangedOK = true;
+                if(range3target) {
+                    creep.rangedAttack(range3target);
+                    rangedOK = true;
+                }
             }
         }
 
@@ -85,9 +86,6 @@ const power_ranged = {
         }
 
         return false;
-    },
-    target: function(creep: Creep) {
-        return true;
     }
 }
 

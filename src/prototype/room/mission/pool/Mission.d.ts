@@ -43,7 +43,7 @@ interface Room {
     // 添加资源发送任务
     SendMissionAdd(target: string, resourceType: string | ResourceConstant, amount: number): OK | void;
     // 添加孵化任务
-    SpawnMissionAdd(name: string, body: number[], level: number, role: string, memory: CreepMemory): OK | -1;
+    SpawnMissionAdd(name: string, body: number[], level: number, role: string, memory?: CreepMemory): OK | -1;
 
     // 获取运输任务
     getTransportMission(creep: Creep): Task | null;

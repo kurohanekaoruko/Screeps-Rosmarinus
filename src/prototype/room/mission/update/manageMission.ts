@@ -16,15 +16,15 @@ function CheckTerminalResAmount(room: Room) {
     // 自动调度资源阈值
     const THRESHOLD = {
         source: {
-            energy: 25000,
+            [RESOURCE_ENERGY]: 25000,
             default: 6000
         },
         target: {
-            energy: 20000,
+            [RESOURCE_ENERGY]: 20000,
             default: 4000
         }
     }
-    Object.keys(LabMap).forEach((r) => { THRESHOLD.source[r] = 12000; THRESHOLD.target[r] = 10000 } )
+    Object.keys(LabMap).forEach((r) => { THRESHOLD.source[r] = 3000; THRESHOLD.target[r] = 3000 } )
     Goods.forEach((r) => { THRESHOLD.source[r] = 1200; THRESHOLD.target[r] = 1000 } )
 
     // 检查终端自动转入
@@ -33,7 +33,8 @@ function CheckTerminalResAmount(room: Room) {
         if(resourceType === RESOURCE_ENERGY && Object.keys(sendTotal).length > 0) {
             amount = Math.min(
                 room.storage.store[resourceType],
-                Object.values(sendTotal).reduce((a, b) => a + b, 0) - room.terminal.store[resourceType]
+                Object.values(sendTotal).reduce((a, b) => a + b, 0) - room.terminal.store[resourceType],
+                50e3 - room.terminal.store[resourceType],
             )
         }
         // 有发送任务时，根据总量来定
@@ -85,9 +86,9 @@ function CheckFactoryResAmount(room: Room) {
 
     // 材料不足时补充
     for(const component in components){
+        if((room.getResourceAmount(component)) <= 0) continue;
         if(factory.store[component] >= 1000) continue;
         const amount = 3000 - factory.store[component];
-        if((room.getResourceAmount(component)) < 1000) continue;
 
         room.ManageMissionAdd('s', 'f', component, Math.min(amount, room.storage.store[component]));
         if(room.storage.store[component] < amount) {

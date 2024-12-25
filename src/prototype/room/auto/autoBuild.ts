@@ -1,8 +1,10 @@
-import {compress,decompress} from "@/utils"
+import {decompress} from "@/utils"
 
 export default class AutoBuild extends Room {
     // 自动建筑
     autoBuild() {
+        if(this.memory.defend) return;
+
         if (Game.time % 100 == 0) {
             this.memory['index'] = Object.keys(Game.rooms).indexOf(this.name) % 100;
         }
@@ -119,39 +121,36 @@ function buildRampart(room: Room, structureType: string, LOOK_S: Structure<Struc
     return;
 }
 
-
 // 检查建筑所在位置的情况, 决定是否跳过建造
-function checkSkipBuild(room: Room, structureType: string, LOOK_S: Structure<StructureConstant>[], Pos: RoomPosition) {
+function checkSkipBuild(room: Room, structureType: string, LOOK_STRUCT: Structure<StructureConstant>[], Pos: RoomPosition) {
     switch (structureType) {
         case 'rampart':
             // 位置没建筑可以造
-            if (!LOOK_S.length) return false;
+            if (!LOOK_STRUCT.length) return false;
             // 有墙跳过
-            if (LOOK_S.some(o => o.structureType == STRUCTURE_RAMPART || o.structureType == STRUCTURE_WALL)) return true;
+            if (LOOK_STRUCT.some(o => o.structureType == STRUCTURE_RAMPART || o.structureType == STRUCTURE_WALL)) return true;
             break;
         case 'road':
             // 位置没建筑可以造
-            if (!LOOK_S.length) return false;
+            if (!LOOK_STRUCT.length) return false;
             // 有非墙建筑，则跳过
-            if (LOOK_S.some(o => o.structureType != STRUCTURE_RAMPART)) return true;
+            if (LOOK_STRUCT.some(o => o.structureType != STRUCTURE_RAMPART)) return true;
             break;
         case 'container':
             // 有非墙非路建筑，则跳过
-            if (LOOK_S.length &&
-                LOOK_S.some(o => o.structureType != STRUCTURE_RAMPART &&
+            if (LOOK_STRUCT.length &&
+                LOOK_STRUCT.some(o => o.structureType != STRUCTURE_RAMPART &&
                 o.structureType != STRUCTURE_ROAD)) return true;
             // 低等级可以造
-            if (room.level <= 6) return false;
-            const sources = room.source || [];
-            // 在能量源旁边的container, 在等级高时不造
-            if (sources[0] && Pos.inRangeTo(sources[0], 2)) return true;
-            if (sources[1] && Pos.inRangeTo(sources[1], 2)) return true;
+            if (room.level <= 7) return false;
+            // 在控制器旁边的container, 在等级高时不造
+            if (Pos.inRangeTo(room.controller, 2)) return true;
             break;
         default:
             // 位置没建筑可以造
-            if (!LOOK_S.length) return false;
+            if (!LOOK_STRUCT.length) return false;
             // 有非墙非路建筑，则跳过
-            if (LOOK_S.some(o => o.structureType != 'rampart' &&
+            if (LOOK_STRUCT.some(o => o.structureType != 'rampart' &&
                 o.structureType != 'road')) return true;
             break;
     }

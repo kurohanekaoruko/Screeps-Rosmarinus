@@ -38,8 +38,8 @@ const one_tough = {
         creep.heal(creep);
     
         if (!creep.memory.boosted) {
-            const boost = ['XGHO2', 'GHO2', 'XLHO2', 'LHO2'];
-            creep.memory.boosted = creep.goBoost(boost);
+            const boost = ['XGHO2', 'XLHO2'];
+            creep.memory.boosted = creep.goBoost(boost, true);
             return
         }
     

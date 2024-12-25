@@ -49,7 +49,7 @@ const harvest = function (creep: Creep) {
         return;
     }
     if (targetSource.energy > 0) {
-        if (creep.pos.isNearTo(targetSource)) {
+        if (creep.pos.isNear(targetSource.pos)) {
             creep.harvest(targetSource);
         } else {
             creep.moveTo(targetSource, {

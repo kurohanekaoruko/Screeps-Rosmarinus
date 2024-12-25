@@ -26,7 +26,7 @@ const upgrade = function (creep: Creep) {
     const link = creep.room.link.find(l => l.pos.inRangeTo(creep.room.controller, 2))
     if(creep.store[RESOURCE_ENERGY] < 50) {
         const target = [link, creep.room.storage, creep.room.terminal]
-            .find(l => l && l.store[RESOURCE_ENERGY] > 0 && creep.pos.inRangeTo(l, 1));
+            .find(l => l && l.store[RESOURCE_ENERGY] > 10000 && creep.pos.inRangeTo(l, 1));
         if(target) {
             creep.withdraw(target, RESOURCE_ENERGY);
         }
@@ -103,12 +103,18 @@ const SpeedUpgrader = {
             return false;
         }
         upgrade(creep);
+        if(creep.ticksToLive < 100 || creep.room.lookForAtArea(LOOK_CREEPS,
+            Math.max(0, creep.pos.y - 1), Math.max(0, creep.pos.x - 1),
+            Math.min(49,creep.pos.y + 1), Math.min(49,creep.pos.x + 1), true)
+            .filter(c => c.creep.memory?.role == 'transport').length > 0) {
+            creep.memory.dontPullMe = false;
+        }
         if (creep.store.getUsedCapacity() === 0) {
             creep.say('🔄');
             return true;
         } else { return false; }
     },
-    
+
     source: function (creep: Creep) {   // 获取能量
         if(!creep.memory.ready) return false;
         if(!creep.moveHomeRoom()) return;
@@ -120,26 +126,41 @@ const SpeedUpgrader = {
             if(creep.unboost()) creep.suicide();
             return false;
         }
+        // 周围的非冲级爬均允许对穿
+        creep.room.lookForAtArea(LOOK_CREEPS,
+            Math.max(0, creep.pos.y - 1), Math.max(0, creep.pos.x - 1),
+            Math.min(49,creep.pos.y + 1), Math.min(49,creep.pos.x + 1), true)
+            .filter(c => c.creep.memory?.role !== 'speedup-upgrad')
+            .forEach(c => c.creep.memory.dontPullMe = false);
+        
+        // 寻找获取能量的目标
         const link = creep.room.link.find(l => l.pos.inRangeTo(creep.room.controller, 2)) || null;
-        const container = creep.room.container.find(l => l.pos.inRangeTo(creep.room.controller, 2)) ?? null;
-        const terminal = [creep.room.terminal].find(l => l && l.pos.inRangeTo(creep.room.controller, 3)) ?? null;
-        const storage = [creep.room.storage].find(l => l && l.pos.inRangeTo(creep.room.controller, 4)) ?? null;
+        const container = creep.room.container.find(c => c.pos.inRangeTo(creep.room.controller, 2)) ?? null;
+        const terminal = [creep.room.terminal].find(t => t && t.pos.inRangeTo(creep.room.controller, 3)) ?? null;
+        const storage = [creep.room.storage].find(s => s && s.pos.inRangeTo(creep.room.controller, 4)) ?? null;
+        const terrain = creep.room.getTerrain();
 
         if (terminal && terminal.store[RESOURCE_ENERGY] > 0 && creep.pos.isNearTo(terminal)) {
-            creep.withdrawOrMoveTo(terminal, RESOURCE_ENERGY)
+            creep.withdraw(terminal, RESOURCE_ENERGY)
         }
         else if (terminal && terminal.store[RESOURCE_ENERGY] > 0 &&
-            creep.room.lookForAtArea(LOOK_CREEPS,
-            terminal.pos.y - 1, terminal.pos.x - 1, terminal.pos.y + 1, terminal.pos.x + 1, true).length < 8
+            [[terminal.pos.x-1,terminal.pos.y-1],[terminal.pos.x-1,terminal.pos.y], [terminal.pos.x-1,terminal.pos.y+1],
+            [terminal.pos.x,terminal.pos.y-1], [terminal.pos.x,terminal.pos.y+1], 
+            [terminal.pos.x+1,terminal.pos.y-1],[terminal.pos.x+1,terminal.pos.y], [terminal.pos.x+1,terminal.pos.y+1]].some(p => {
+                return terrain.get(p[0], p[1]) !== TERRAIN_MASK_WALL && !creep.room.lookForAt(LOOK_CREEPS, p[0], p[1]).length
+            })
         ) {
             creep.withdrawOrMoveTo(terminal, RESOURCE_ENERGY)
         }
-        else if (storage && storage.store[RESOURCE_ENERGY] > 0 && creep.pos.isNearTo(storage)) {
-            creep.withdrawOrMoveTo(storage, RESOURCE_ENERGY)
+        else if (storage && storage.store[RESOURCE_ENERGY] > 10000 && creep.pos.isNearTo(storage)) {
+            creep.withdraw(storage, RESOURCE_ENERGY)
         }
-        else if (storage && storage.store[RESOURCE_ENERGY] > 0 &&
-            creep.room.lookForAtArea(LOOK_CREEPS,
-            storage.pos.y - 1, storage.pos.x - 1, storage.pos.y + 1, storage.pos.x + 1, true).length < 8
+        else if (storage && storage.store[RESOURCE_ENERGY] > 10000 &&
+            [[storage.pos.x-1,storage.pos.y-1],[storage.pos.x-1,storage.pos.y], [storage.pos.x-1,storage.pos.y+1],
+            [storage.pos.x,storage.pos.y-1], [storage.pos.x,storage.pos.y+1], 
+            [storage.pos.x+1,storage.pos.y-1],[storage.pos.x+1,storage.pos.y], [storage.pos.x+1,storage.pos.y+1]].some(p => {
+                return terrain.get(p[0], p[1]) !== TERRAIN_MASK_WALL && !creep.room.lookForAt(LOOK_CREEPS, p[0], p[1]).length
+            })
         ) {
             creep.withdrawOrMoveTo(storage, RESOURCE_ENERGY)
         }
@@ -149,7 +170,7 @@ const SpeedUpgrader = {
         else if(container && container.store[RESOURCE_ENERGY] > 0) {
             creep.withdrawOrMoveTo(container, RESOURCE_ENERGY);
         }
-        else creep.withdrawEnergy(!creep.room.storage&&!creep.room.terminal);
+        else creep.withdrawEnergy();
 
         if (creep.store.getFreeCapacity() === 0) {
             creep.say('⚡');

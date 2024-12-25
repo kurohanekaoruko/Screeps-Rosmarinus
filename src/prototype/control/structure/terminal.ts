@@ -94,56 +94,66 @@ export default {
             }
         },
     },
-    resmanage: {
+    resource: {
+        set(roomName: string, resource: string, source: number, target: number) {
+            const RESOURCE_ABBREVIATIONS = global.BaseConfig.RESOURCE_ABBREVIATIONS;
+            resource = RESOURCE_ABBREVIATIONS[resource] || resource;
+            source = source ?? Infinity;
+            target = target ?? 0;
+            if (!Memory['ResourceManage']) Memory['ResourceManage'] = {};
+            if (!Memory['ResourceManage'][roomName]) Memory['ResourceManage'][roomName] = {};
+            Memory['ResourceManage'][roomName][resource] = { source, target }
+            console.log(`设置房间 ${roomName} 的 ${resource} 供应阈值为 ${source}  需求阈值为 ${target}`);
+            return OK;
+        },
+        remove(roomName: string, resource: string) {
+            const RESOURCE_ABBREVIATIONS = global.BaseConfig.RESOURCE_ABBREVIATIONS;
+            resource = RESOURCE_ABBREVIATIONS[resource] || resource;
+            if (!Memory['ResourceManage']) Memory['ResourceManage'] = {};
+            if (!Memory['ResourceManage'][roomName]) Memory['ResourceManage'][roomName] = {};
+            if (Memory['ResourceManage'][roomName][resource]) {
+                delete Memory['ResourceManage'][roomName][resource];
+                console.log(`移除房间 ${roomName} 的 ${resource} 供需设置`);
+            }
+            return OK;
+        },
         show: {
             all() {
                 const botmem = Memory['ResourceManage'];
-                for (const res in botmem) {
-                    console.log(`资源${res}:`);
-                    console.log(`   -需求房间: ${botmem[res][0]||'无'}`);
-                    console.log(`   -供应房间: ${botmem[res][1]||'无'}`);
+                for (const roomName in botmem) {
+                    console.log(`房间${roomName}:`);
+                    for (const res in botmem[roomName]) {
+                        console.log(`   -资源${res}:`);
+                        console.log(`      -供应阈值: ${botmem[roomName][res].source}`);
+                        console.log(`      -需求阈值: ${botmem[roomName][res].target}`);
+                    }
                 }
                 return OK;
+            },
+            room(roomName: string) {
+                if (!roomName) return Error('必须指定房间');
+                const botmem = Memory['ResourceManage'];
+                if (!botmem[roomName]) return Error('该房间没有资源管理设置');
+                for (const res in botmem[roomName]) {
+                    console.log(`资源${res}:`);
+                    console.log(`   -供应阈值: ${botmem[roomName][res].source}`);
+                    console.log(`   -需求阈值: ${botmem[roomName][res].target}`);
+                }
             },
             res(res: string) {
                 if (!res) return Error('必须指定资源');
                 const RESOURCE_ABBREVIATIONS = global.BaseConfig.RESOURCE_ABBREVIATIONS;
                 res = RESOURCE_ABBREVIATIONS[res] || res;
                 const botmem = Memory['ResourceManage'];
-                console.log(`资源${res}:`);
-                console.log(`   -需求房间: ${botmem[res][0]||'无'}`);
-                console.log(`   -供应房间: ${botmem[res][1]||'无'}`);
-                return OK;
-            },
-            room(roomName: string) {
-                if (!roomName) return Error('必须指定房间');
-                const botmem = Memory['ResourceManage'];
-                const reslist = {0: [], 1: []};
-                for (const res in botmem) {
-                    if (botmem[res][0]?.includes(roomName)) reslist[0].push(res);
-                    if (botmem[res][1]?.includes(roomName)) reslist[1].push(res);
+                for (const roomName in botmem) {
+                    if (botmem[roomName][res]) {
+                        console.log(`房间${roomName} 资源${res}:`);
+                        console.log(`   -供应阈值: ${botmem[roomName][res].source}`);
+                        console.log(`   -需求阈值: ${botmem[roomName][res].target}`);
+                    }
                 }
-                console.log(`房间${roomName}的资源需求: ${reslist[0]||'无'}`);
-                console.log(`房间${roomName}的资源供应: ${reslist[1]||'无'}`);
                 return OK;
             }
-        },
-        set(roomName: string, resource: string, type: 0 | 1) {
-            const RESOURCE_ABBREVIATIONS = global.BaseConfig.RESOURCE_ABBREVIATIONS;
-            resource = RESOURCE_ABBREVIATIONS[resource] || resource;
-            if (type != 0 && type != 1) return Error('第三参数type 必须是:0、1, 分别代表:需求、供应');
-            const botmem = Memory['ResourceManage'];
-            if (!botmem[resource]) botmem[resource] = {};
-            if (!botmem[resource][type]) botmem[resource][type] = [];
-            const index = botmem[resource][type].indexOf(roomName);
-            if (index >= 0) {
-                botmem[resource][type].splice(index, 1);
-                console.log(`已将${roomName}从${resource}的${type==1?'供应':'需求'}列表中去除。`)
-            } else {
-                botmem[resource][type].push(roomName);
-                console.log(`已将${roomName}添加到${resource}的${type==1?'供应':'需求'}列表中。`)
-            }
-            return OK;
         }
     }
 }

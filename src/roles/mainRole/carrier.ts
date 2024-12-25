@@ -52,7 +52,7 @@ const checkAndFillNearbyExtensions = (creep) => {
     const { pos, room, store, memory } = creep;
     
     const energyAvailable = store[RESOURCE_ENERGY];
-    if (energyAvailable <= 50 || creep.fatigue > 0 || !room.storage || pos.getRangeTo(room.storage) > 10) {
+    if (energyAvailable <= 50 || !room.storage || pos.getRangeTo(room.storage) > 10) {
         return false;
     }
 
@@ -190,7 +190,8 @@ const carry = (creep: any) => {
             if (result === OK) {
                 delete memory.cache.targetId;
                 delete memory.cache.resourceType;
-                if (target.store.getFreeCapacity(resourceType) >= store[resourceType]) {
+                if (Object.keys(store).length == 1 &&
+                    target.store.getFreeCapacity(resourceType) >= store[resourceType]) {
                     return true;
                 }
             }
@@ -201,21 +202,41 @@ const carry = (creep: any) => {
     }
 };
 
+const GoGenerateSafeMode = (creep: Creep) => {
+    const controller = creep.room.controller;
+    if (!controller || !controller.my || controller.level < 7 ||
+        controller.safeModeAvailable > 0) {
+        return false;
+    }
+    if (creep.store.getCapacity() < 1000) return false;
+    if (creep.store[RESOURCE_GHODIUM] < 1000) {
+        const target = [creep.room.storage, creep.room.terminal].find(s => s.store[RESOURCE_GHODIUM] >= 1000);
+        if (!target) return false;
+        creep.withdrawOrMoveTo(target, RESOURCE_GHODIUM, 1000);
+        return true;
+    }
+    else if (creep.store[RESOURCE_GHODIUM] >= 1000) {
+        if(creep.pos.isNearTo(controller)){
+            creep.generateSafeMode(controller);
+        } else{
+            creep.moveTo(controller, { visualizePathStyle: { stroke: '#ffffff' } });
+        }
+    } else return false
+}
+
 const CarrierFunction = {
     source: (creep: any) => {
         if (!creep.moveHomeRoom()) return;
+        if (creep.store.getFreeCapacity() === 0) return true;
         if (checkAndFillNearbyExtensions(creep)) return;
-        if  (creep.store.getFreeCapacity() === 0) {
-            return true;
-        }
+        if (GoGenerateSafeMode(creep)) return;
         return withdraw(creep);
     },
     target: (creep: any) => {
         if (!creep.moveHomeRoom()) return;
+        if (creep.store.getUsedCapacity() === 0) return true;
         if (checkAndFillNearbyExtensions(creep)) return;
-        if  (creep.store.getUsedCapacity() === 0) {
-            return true;
-        }
+        if (GoGenerateSafeMode(creep)) return;
         return carry(creep);
     },
 };

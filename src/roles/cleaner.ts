@@ -9,15 +9,17 @@ const cleaner = {
             return
         }
 
+        if (creep.room.my) return;
+
         if (!creep.memory['NO_PATH']) creep.memory['NO_PATH'] = [];
         const target = Game.getObjectById(creep.memory['targetId']) as Structure;
 
         if (!target) {
-            const enemiesStructures = creep.room.find(FIND_HOSTILE_STRUCTURES);
+            const enemiesStructures = creep.room.find(FIND_STRUCTURES);
             if(enemiesStructures.length == 0) return;
-            const Structures = enemiesStructures.filter((s) =>
-                s.hits && s.hits > 0 && s.hits < 1e4 &&
-                s.structureType != STRUCTURE_STORAGE && s.structureType != STRUCTURE_TERMINAL);
+            const Structures = enemiesStructures.filter((s: any) =>
+                s.hits && s.hits > 0 && s.hits <= 1e4 &&
+                (!s.store || s.store.getUsedCapacity() <= 3000));
             const targetStructure = creep.pos.findClosestByRange(Structures, {
                 filter: (s: any) => !creep.memory['NO_PATH'].includes(s.id)
             });
@@ -32,6 +34,7 @@ const cleaner = {
         }
 
         if (!target) return;
+        
         if(creep.pos.isNearTo(target)) creep.dismantle(target);
         else creep.moveTo(target,{maxRooms: 1,range: 1});
 

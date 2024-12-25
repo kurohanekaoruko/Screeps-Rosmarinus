@@ -1,7 +1,7 @@
 /**
  * 房间工作模块，具体工作由原型拓展定义
  */
-export const roomRunner = function (room: Room) {
+export const roomControl = function (room: Room) {
     // 定期更新建筑缓存
     if (Game.time % 100 == 0) room.update();
 

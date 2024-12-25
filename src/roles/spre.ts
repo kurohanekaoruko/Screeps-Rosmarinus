@@ -5,7 +5,7 @@ const RepairWork = function (creep: Creep) {
 
     if (!target || target.hits == target.hitsMax) {
         const memory = Memory['LayoutData'][creep.room.name];
-        const wallMem = memory['wall'] || [];
+        let wallMem = memory['constructedWall'] || [];
         let rampartMem = memory['rampart'] || [];
         let structRampart = [];
         for (let s of ['spawn', 'tower', 'storage', 'terminal', 'factory', 'lab', 'nuker', 'powerSpawn']) {
@@ -28,8 +28,8 @@ const RepairWork = function (creep: Creep) {
         
         // 附近
         let inRangeRamWalls = []
-        if (creep.memory['linkId']) {
-            const link = Game.getObjectById(creep.memory['linkId']) as StructureLink;
+        const link = Game.getObjectById(creep.memory['linkId']) as StructureLink;
+        if (link) {
             inRangeRamWalls = allRamWalls.filter(structure => structure.pos.inRangeTo(link.pos, 4));
         } else {
             inRangeRamWalls = allRamWalls.filter(structure => structure.pos.inRangeTo(creep.pos, 3));
@@ -51,6 +51,16 @@ const RepairWork = function (creep: Creep) {
 
     if (target) creep.repairOrMoveTo(target);
 
+    if(creep.store[RESOURCE_ENERGY] < 50) {
+        const link = creep.pos.findInRange(FIND_MY_STRUCTURES, 1, {
+            filter: structure => structure.structureType == STRUCTURE_LINK &&
+                structure.store[RESOURCE_ENERGY] > 0
+        })[0] as StructureLink;
+        if (link) {
+            creep.withdraw(link, RESOURCE_ENERGY);
+        }
+    }
+
     return;
 }
 
@@ -68,7 +78,9 @@ const WithdrawLink = function (creep: Creep) {
         if (links.length > 0) {
             let minBind = Infinity;
             for (let link of links) {
-                const bindNum = creep.room.find(FIND_MY_CREEPS, {filter: creep => creep.memory['linkId'] == link.id}).length;
+                const bindNum = creep.room.find(FIND_MY_CREEPS, {
+                    filter: creep => creep.memory['linkId'] == link.id
+                }).length;
                 if (bindNum == 0) {
                     linktarget = link;
                     break;
@@ -81,10 +93,20 @@ const WithdrawLink = function (creep: Creep) {
         if (linktarget) creep.memory['linkId'] = linktarget.id;
     }
 
-    if (linktarget) {
+    if (linktarget && linktarget.store[RESOURCE_ENERGY] > 0) {
         creep.withdrawOrMoveTo(linktarget);
         return true;
     }
+    
+    const links = creep.pos.findInRange(FIND_MY_STRUCTURES, 1, {
+        filter: structure => structure.structureType == STRUCTURE_LINK &&
+            structure.store[RESOURCE_ENERGY] > 0
+    })
+    if (links.length > 0) {
+        creep.withdraw(links[0], RESOURCE_ENERGY);
+        return true;
+    }
+    
 
     return false;
 }
@@ -115,8 +137,7 @@ const SpeedupRepair = {
             creep.say('🚧');
             return true;
         } else {
-            if(WithdrawLink(creep)) return false;
-            creep.withdrawEnergy();
+            WithdrawLink(creep);
             return false;
         }
     }

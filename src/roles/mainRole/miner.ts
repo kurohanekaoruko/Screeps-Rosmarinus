@@ -44,13 +44,11 @@ const UnitMiner = {
                 return false;
             }
             const target = (mineralContainer && mineralContainer.store.getFreeCapacity() > 0) ?
-                            mineralContainer : 
-                            creep.pos.findClosestByRange([creep.room.storage, creep.room.terminal])
+                            mineralContainer : null;
 
             if (target) {
                 creep.memory.cache.targetId = target.id;
             } else {
-                creep.drop(Object.keys(creep.store)[0] as ResourceConstant);
                 return false;
             }
         }

@@ -1,10 +1,10 @@
 import { RoleData } from '@/constant/CreepConstant';
-import { sayConstant } from '@/constant/sayConstant';
+// import { sayConstant } from '@/constant/sayConstant';
 
 /**
  * creep 工作模块，具体工作由原型拓展定义
  */
-export const creepRunner = function (creep: Creep) {
+export const creepControl = function (creep: Creep) {
     if (!creep || creep.spawning) return;
     // Creep运行
     const role = creep.memory.role;
@@ -37,6 +37,7 @@ export const creepRunner = function (creep: Creep) {
     else if(roledata.action) {
         roledata.action.run(creep);
     }
+    else return;
 
     // --------------------------------------------------------------
     

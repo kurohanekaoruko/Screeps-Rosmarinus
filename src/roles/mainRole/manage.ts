@@ -138,7 +138,7 @@ function LinkEnergyTransfer(creep: Creep) {
     if (!manageLink) return; // 没有中心Link，不执行任务
 
     // 向link转移能量
-    if (controllerLink && creep.room.level < 8 && controllerLink.store[RESOURCE_ENERGY] < 400) {
+    if (controllerLink && controllerLink.store[RESOURCE_ENERGY] < 400) {
         if (manageLink?.store.getFreeCapacity(RESOURCE_ENERGY) < 100) {
             return; // 只在空余空间大于100时转移能量
         }

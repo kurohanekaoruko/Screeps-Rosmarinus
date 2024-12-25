@@ -15,6 +15,21 @@ export default {
                 return OK;
             }
         },
+        flag(roomName: string) {
+            const room = Game.rooms[roomName];
+            if(!room) {
+                return Error(`无房间视野`);
+            }
+            const flag = room.find(FIND_FLAGS);
+            if(flag.length === 0) {
+                return Error(`无旗子`);
+            } else {
+                for(const f of flag) {
+                    f.remove();
+                }
+                return OK;
+            }
+        },
         mission(roomName: string, type: string) {
             Memory.MissionPools[roomName][type] = [];
             console.log(`已清空房间 ${roomName} 的 ${type} 任务`);

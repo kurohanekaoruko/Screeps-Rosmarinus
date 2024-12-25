@@ -82,7 +82,7 @@ export default class PowerCreepUsePower extends PowerCreep {
         if (!Game.flags[this.name+'-upspawn'] &&
             ((Object.keys(this.room.memory['powerMine']||{}).length == 0 &&
             Object.keys(this.room.memory['depositMine']||{}).length == 0) ||
-            this.room.getSpawnMissionTotalByRoles(roles) < 3)) return false;
+            this.room.getSpawnMissionTotalByRoles(roles) < 1)) return false;
         if(powers[PWR_OPERATE_SPAWN].cooldown > 0) return false;
         const spawns = this.room.spawn;
         if(!spawns) return false;

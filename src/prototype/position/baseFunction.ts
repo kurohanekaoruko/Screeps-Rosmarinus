@@ -20,7 +20,8 @@ export default class BaseFunction extends RoomPosition {
         return Math.abs(x1 - x2) <= 1 && Math.abs(y1 - y2) <= 1;
     }
     // 是否在指定距离内
-    inRange(pos: RoomPosition, range: number): boolean {
+    inRange(target: any, range: number): boolean {
+        let pos = target.pos || target;
         if (!pos) return false;
         return this.getDistance(pos) <= range;
     }
